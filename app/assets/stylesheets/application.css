@@ -13,3 +13,43 @@
  *= require_tree .
  *= require_self
  */
+
+html {
+    background: #777;
+}
+
+.board-grid {
+    display: grid;
+}
+
+.board-row {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.board {
+    border: 1px solid black;
+
+    /* Using this instead of grid gap. */
+    padding: 0.6rem;
+
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    grid-auto-columns: 2rem;
+    grid-auto-rows: 2rem;
+}
+
+.square {
+    height: 4rem;
+    width: 4rem;
+    display: inline-block;
+}
+
+.dark {
+    background: #444;
+}
+
+.light {
+    background: white;
+}

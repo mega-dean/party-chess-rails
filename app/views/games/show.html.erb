@@ -1,0 +1,19 @@
+<h1>Game <%= @game.id %></h1>
+
+<div class='board-grid'>
+  <% @game.boards_tall.times do %>
+    <div class='board-row'>
+      <% @game.boards_wide.times do %>
+        <div class='board'>
+          <% 8.times do |y| %>
+            <% 8.times do |x| %>
+              <span class='square <%= y%2 == x%2 ? "light" : "dark" %>'><%= [x, y] %></span>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+      <br />
+    </div>
+  <% end %>
+</div>
+

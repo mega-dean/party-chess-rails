@@ -25,3 +25,7 @@ module PartyChessRails
     # config.eager_load_paths << Rails.root.join("extras")
   end
 end
+
+# CLEANUP probably move this somewhere else
+require 'pry'
+Rails.application.config.console = Pry
