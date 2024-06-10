@@ -7,17 +7,22 @@
         <div class='board'>
           <% 8.times do |y| %>
             <% 8.times do |x| %>
-              <span class='square <%= y%2 == x%2 ? "light" : "dark" %>'>
-                <%
-                # FIXME just iterate through @pieces instead of through all squares
-                square_idx = @game.get_square_idx(board_x: board_x, board_y: board_y, x: x, y: y)
-                piece = @pieces[square_idx]
-                %>
-                <% if piece %>
-                  <%= image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece') %>
-                <% end %>
-              </span>
+              <span class='square <%= y%2 == x%2 ? "light" : "dark" %>'></span>
             <% end %>
+          <% end %>
+
+          <% pieces_on_board = @pieces[[board_x, board_y]] || [] %>
+          <% pieces_on_board.each do |piece| %>
+            <%=
+            location = @game.from_square_idx(piece.square)
+            # FIXME duplicated in the .css (not sure if this is avoidable though)
+            square_rem = 4
+            padding_rem = 0.6
+            x_rem = (square_rem * location[:x]) + padding_rem
+            y_rem = (square_rem * location[:y]) + padding_rem
+            transform_style = "transform: translate(#{x_rem}rem, #{y_rem}rem)"
+            image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece', style: transform_style)
+            %>
           <% end %>
         </div>
       <% end %>
@@ -25,4 +30,3 @@
     </div>
   <% end %>
 </div>
-

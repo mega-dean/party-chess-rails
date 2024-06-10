@@ -10,18 +10,29 @@ class Game < ApplicationRecord
     end
   end
 
+  def pieces_by_board
+    players.includes(:pieces).reduce({}) do |acc, player|
+      player.pieces.each do |piece|
+        location = self.from_square_idx(piece.square)
+        acc[[location[:board_x], location[:board_y]]] ||= []
+        acc[[location[:board_x], location[:board_y]]] << piece
+      end
+      acc
+    end
+  end
+
   # Each board is 64 consecutive indexes:
   # + - - - - - - - - + - - - - - - - - +
-  # | 0 1 2 3 4 5 6 7 | 65 66 67 ...    |
+  # | 0 1 2 3 4 5 6 7 | 64 64 66 ...    |
   # | 8 9 ...         |                 |
   # |                 |                 |
   # |                 |                 |
   # |                 |                 |
   # |                 |                 |
   # |                 |                 |
-  # |    ... 62 63 64 |     ... 127 128 |
+  # |    ... 61 62 63 |     ... 126 127 |
   # + - - - - - - - - + - - - - - - - - +
-  # | 129 130 ...     |                 |
+  # | 128 129 ...     |                 |
   # |                 |                 |
   # |                 |                 |
   # |                 |                 |
@@ -37,5 +48,27 @@ class Game < ApplicationRecord
       (board_x * 64) +
       (y * 8) +
       x
+  end
+
+  def from_square_idx(idx)
+    squares_per_board_row = self.boards_wide * 64
+
+    board_y = idx / squares_per_board_row
+    idx %= squares_per_board_row
+
+    board_x = idx / 64
+    idx %= 64
+
+    y = idx / 8
+    idx %= 8
+
+    x = idx
+
+    {
+      board_x: board_x,
+      board_y: board_y,
+      x: x,
+      y: y,
+    }
   end
 end

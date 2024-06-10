@@ -1,6 +1,6 @@
 class GamesController < ApplicationController
   def show
     @game = Game.first
-    @pieces = @game.all_pieces
+    @pieces = @game.pieces_by_board
   end
 end
