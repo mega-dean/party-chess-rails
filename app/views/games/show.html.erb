@@ -1,13 +1,22 @@
 <h1>Game <%= @game.id %></h1>
 
 <div class='board-grid'>
-  <% @game.boards_tall.times do %>
+  <% @game.boards_tall.times do |board_y| %>
     <div class='board-row'>
-      <% @game.boards_wide.times do %>
+      <% @game.boards_wide.times do |board_x| %>
         <div class='board'>
           <% 8.times do |y| %>
             <% 8.times do |x| %>
-              <span class='square <%= y%2 == x%2 ? "light" : "dark" %>'><%= [x, y] %></span>
+              <span class='square <%= y%2 == x%2 ? "light" : "dark" %>'>
+                <%
+                # FIXME just iterate through @pieces instead of through all squares
+                square_idx = @game.get_square_idx(board_x: board_x, board_y: board_y, x: x, y: y)
+                piece = @pieces[square_idx]
+                %>
+                <% if piece %>
+                  <%= image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece') %>
+                <% end %>
+              </span>
             <% end %>
           <% end %>
         </div>

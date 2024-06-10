@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_08_170424) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_09_145056) do
   create_table "games", force: :cascade do |t|
     t.integer "boards_tall", null: false
     t.integer "boards_wide", null: false
@@ -29,8 +29,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_08_170424) do
     t.index ["player_id"], name: "index_moves_on_player_id"
   end
 
+  create_table "pieces", force: :cascade do |t|
+    t.integer "player_id", null: false
+    t.string "kind", null: false
+    t.integer "square", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["player_id"], name: "index_pieces_on_player_id"
+  end
+
   create_table "players", force: :cascade do |t|
-    t.integer "is_black", null: false
+    t.boolean "is_black", null: false
     t.integer "game_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

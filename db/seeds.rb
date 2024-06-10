@@ -7,3 +7,13 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+
+game = Game.create!(boards_tall: 10, boards_wide: 10)
+
+black_player = game.players.create!(is_black: true)
+white_player = game.players.create!(is_black: false)
+
+black_player.pieces.create!(kind: 'rook', square: 3)
+black_player.pieces.create!(kind: 'knight', square: 6400 - 4)
+white_player.pieces.create!(kind: 'queen', square: 5)
+white_player.pieces.create!(kind: 'bishop', square: 6400 - 6)

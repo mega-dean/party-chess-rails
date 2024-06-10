@@ -53,3 +53,7 @@ html {
 .light {
     background: white;
 }
+
+img.piece {
+    max-width: 100%;
+}
