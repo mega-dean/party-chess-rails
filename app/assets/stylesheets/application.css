@@ -42,6 +42,12 @@ html {
     position: relative;
 }
 
+.piece_container {
+    position: absolute;
+    width: 4rem;
+    height: 4rem;
+}
+
 .square {
     height: 4rem;
     width: 4rem;

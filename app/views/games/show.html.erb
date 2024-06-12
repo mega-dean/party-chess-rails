@@ -1,8 +1,8 @@
 <h1>Game <%= @game.id %></h1>
 
-<!--
+<%= turbo_stream_from "pieces" %>
 <div class='board-grid'>
-     <% @game.boards_tall.times do |board_y| %>
+  <% @game.boards_tall.times do |board_y| %>
     <div class='board-row'>
       <% @game.boards_wide.times do |board_x| %>
         <div class='board'>
@@ -14,34 +14,11 @@
 
           <% pieces_on_board = @pieces[[board_x, board_y]] || [] %>
           <% pieces_on_board.each do |piece| %>
-            <%=
-            location = @game.from_square_idx(piece.square)
-            # FIXME duplicated in the .css (not sure if this is avoidable though)
-            square_rem = 4
-            padding_rem = 0.6
-            x_rem = (square_rem * location[:x]) + padding_rem
-            y_rem = (square_rem * location[:y]) + padding_rem
-            transform_style = "transform: translate(#{x_rem}rem, #{y_rem}rem)"
-
-            image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece', style: transform_style)
-            %>
+            <%= render partial: piece %>
           <% end %>
         </div>
       <% end %>
       <br />
     </div>
   <% end %>
-</div>
--->
-
-<div data-controller="game">
-  <p>game with <%= @game.players.count %> players</p>
-  <%= turbo_stream_from "pieces" %>
-  <div id="pieces">
-    <% @pieces.each do |board_coords, pieces| %>
-      <% pieces.each do |piece| %>
-        <%= render partial: piece %>
-      <% end %>
-    <% end %>
-  </div>
 </div>
