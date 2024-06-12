@@ -1,6 +1,16 @@
+<%= link_to("back", games_path) %>
+
 <h1>Game <%= @game.id %></h1>
 
-<%= turbo_stream_from "pieces" %>
+<!-- FIXME nav bar -->
+
+<h4>Playing as <%= current_player&.id || '(nobody)' %></h4>
+
+<div>
+  <%= button_to("quit", sessions_destroy_path, { method: :delete }) %>
+</div>
+
+<%= turbo_stream_from("pieces") %>
 <div class='board-grid'>
   <% @game.boards_tall.times do |board_y| %>
     <div class='board-row'>
@@ -12,9 +22,16 @@
             <% end %>
           <% end %>
 
-          <% pieces_on_board = @pieces[[board_x, board_y]] || [] %>
-          <% pieces_on_board.each do |piece| %>
-            <%= render partial: piece %>
+          <%
+          pieces_on_board = @pieces[[board_x, board_y]] || []
+          show_board = pieces_on_board.any? do |piece|
+            piece.player.id == current_player&.id
+          end
+          %>
+          <% if show_board %>
+            <% pieces_on_board.each do |piece| %>
+              <%= render partial: piece %>
+            <% end %>
           <% end %>
         </div>
       <% end %>

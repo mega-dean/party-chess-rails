@@ -1,8 +1,9 @@
-<p>all games</p>
+<div>Games</div>
 <ul>
   <% @games.each do |game| %>
     <li>
-      <%= link_to(game.id, game) %>
+      <span><%= game.id %></span>
+      <div class='join-button'><%= button_to("Join", sessions_create_path, { params: { game_id: game.id } }) %></div>
     </li>
   <% end %>
 </ul>

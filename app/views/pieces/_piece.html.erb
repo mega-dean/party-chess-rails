@@ -8,6 +8,6 @@ y_rem = (square_rem * location[:y]) + padding_rem
 transform_style = "transform: translate(#{x_rem}rem, #{y_rem}rem)"
 %>
 
-<div id="piece_<%= piece.id %>" class="piece_container" style="<%= transform_style %>">
+<div id="piece_<%= piece.id %>" class="piece-container" style="<%= transform_style %>">
   <%= image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece') %>
 </div>

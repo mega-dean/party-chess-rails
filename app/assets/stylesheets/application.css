@@ -42,10 +42,14 @@ html {
     position: relative;
 }
 
-.piece_container {
+.piece-container {
     position: absolute;
     width: 4rem;
     height: 4rem;
+}
+
+.join-button {
+    display: inline-block;
 }
 
 .square {

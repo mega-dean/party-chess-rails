@@ -1,8 +1,10 @@
 class Piece < ApplicationRecord
   belongs_to :player
 
+  KINDS = ['rook', 'queen', 'knight', 'bishop']
+
   validates :kind, inclusion: {
-    in: ['rook', 'queen', 'knight', 'bishop']
+    in: KINDS
   }
 
   after_update_commit -> {
