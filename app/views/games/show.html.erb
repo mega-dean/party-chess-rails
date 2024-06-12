@@ -1,7 +1,8 @@
 <h1>Game <%= @game.id %></h1>
 
+<!--
 <div class='board-grid'>
-  <% @game.boards_tall.times do |board_y| %>
+     <% @game.boards_tall.times do |board_y| %>
     <div class='board-row'>
       <% @game.boards_wide.times do |board_x| %>
         <div class='board'>
@@ -21,6 +22,7 @@
             x_rem = (square_rem * location[:x]) + padding_rem
             y_rem = (square_rem * location[:y]) + padding_rem
             transform_style = "transform: translate(#{x_rem}rem, #{y_rem}rem)"
+
             image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece', style: transform_style)
             %>
           <% end %>
@@ -29,4 +31,17 @@
       <br />
     </div>
   <% end %>
+</div>
+-->
+
+<div data-controller="game">
+  <p>game with <%= @game.players.count %> players</p>
+  <%= turbo_stream_from "pieces" %>
+  <div id="pieces">
+    <% @pieces.each do |board_coords, pieces| %>
+      <% pieces.each do |piece| %>
+        <%= render partial: piece %>
+      <% end %>
+    <% end %>
+  </div>
 </div>

@@ -4,4 +4,8 @@ class Piece < ApplicationRecord
   validates :kind, inclusion: {
     in: ['rook', 'queen', 'knight', 'bishop']
   }
+
+  after_update_commit -> {
+    broadcast_replace_to "pieces"
+  }
 end
