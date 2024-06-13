@@ -11,14 +11,22 @@ class Game < ApplicationRecord
   end
 
   def pieces_by_board
-    players.includes(:pieces).reduce({}) do |acc, player|
+    h = {}
+
+    self.boards_tall.times do |board_y|
+      self.boards_wide.times do |board_x|
+        h[[board_x, board_y]] = []
+      end
+    end
+
+    players.includes(:pieces).each do |player|
       player.pieces.each do |piece|
         location = self.from_square_idx(piece.square)
-        acc[[location[:board_x], location[:board_y]]] ||= []
-        acc[[location[:board_x], location[:board_y]]] << piece
+        h[[location[:board_x], location[:board_y]]] << piece
       end
-      acc
     end
+
+    h
   end
 
   # Each board is 64 consecutive indexes:

@@ -15,20 +15,22 @@
   <% @game.boards_tall.times do |board_y| %>
     <div class='board-row'>
       <% @game.boards_wide.times do |board_x| %>
-        <div class='board'>
+
+        <%
+        pieces_on_board = @pieces[[board_x, board_y]]
+        has_piece_on_board = pieces_on_board.any? do |piece|
+          piece.player.id == current_player&.id
+        end
+        %>
+
+        <div class="board">
           <% 8.times do |y| %>
             <% 8.times do |x| %>
-              <span class='square <%= y%2 == x%2 ? "light" : "dark" %>'></span>
+              <% span_class = "#{y%2 == x%2 ? 'light' : 'dark'}-#{has_piece_on_board ? 'revealed' : 'obscured'}" %>
+              <span class="square <%= span_class %>"></span>
             <% end %>
           <% end %>
-
-          <%
-          pieces_on_board = @pieces[[board_x, board_y]] || []
-          show_board = pieces_on_board.any? do |piece|
-            piece.player.id == current_player&.id
-          end
-          %>
-          <% if show_board %>
+          <% if has_piece_on_board %>
             <% pieces_on_board.each do |piece| %>
               <%= render partial: piece %>
             <% end %>

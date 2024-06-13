@@ -58,12 +58,20 @@ html {
     display: inline-block;
 }
 
-.dark {
+.dark-obscured {
+    background: #333;
+}
+
+.light-obscured {
+    background: #555;
+}
+
+.dark-revealed {
     background: #444;
 }
 
-.light {
-    background: white;
+.light-revealed {
+    background: #eee;
 }
 
 img.piece {
