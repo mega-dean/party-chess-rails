@@ -11,4 +11,6 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   resources :games, only: [:index, :show]
+
+  post 'players/select_piece', to: 'players#select_piece'
 end

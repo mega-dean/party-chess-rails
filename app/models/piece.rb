@@ -6,8 +6,4 @@ class Piece < ApplicationRecord
   validates :kind, inclusion: {
     in: KINDS
   }
-
-  after_update_commit -> {
-    broadcast_replace_to "pieces"
-  }
 end

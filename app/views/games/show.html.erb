@@ -2,42 +2,16 @@
 
 <h1>Game <%= @game.id %></h1>
 
-<!-- FIXME nav bar -->
-
 <h4>Playing as <%= current_player&.id || '(nobody)' %></h4>
 
 <div>
   <%= button_to("quit", sessions_destroy_path, { method: :delete }) %>
 </div>
 
-<%= turbo_stream_from("pieces") %>
-<div class='board-grid'>
-  <% @game.boards_tall.times do |board_y| %>
-    <div class='board-row'>
-      <% @game.boards_wide.times do |board_x| %>
-
-        <%
-        pieces_on_board = @pieces[[board_x, board_y]]
-        has_piece_on_board = pieces_on_board.any? do |piece|
-          piece.player.id == current_player&.id
-        end
-        %>
-
-        <div class="board">
-          <% 8.times do |y| %>
-            <% 8.times do |x| %>
-              <% span_class = "#{y%2 == x%2 ? 'light' : 'dark'}-#{has_piece_on_board ? 'revealed' : 'obscured'}" %>
-              <span class="square <%= span_class %>"></span>
-            <% end %>
-          <% end %>
-          <% if has_piece_on_board %>
-            <% pieces_on_board.each do |piece| %>
-              <%= render partial: piece %>
-            <% end %>
-          <% end %>
-        </div>
-      <% end %>
-      <br />
-    </div>
-  <% end %>
-</div>
+<%= turbo_stream_from("game_board") %>
+<%=
+render partial: "games/board_grid", locals: {
+  game: @game,
+  pieces: @pieces,
+}
+%>

@@ -1,6 +1,5 @@
 <%
 location = piece.player.game.from_square_idx(piece.square)
-# FIXME duplicated in the .css (not sure if this is avoidable though)
 square_rem = 4
 padding_rem = 0.6
 x_rem = (square_rem * location[:x]) + padding_rem
@@ -8,6 +7,20 @@ y_rem = (square_rem * location[:y]) + padding_rem
 transform_style = "transform: translate(#{x_rem}rem, #{y_rem}rem)"
 %>
 
-<div id="piece_<%= piece.id %>" class="piece-container" style="<%= transform_style %>">
-  <%= image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece') %>
-</div>
+<% if piece.player.id == current_player&.id %>
+  <div id="piece_<%= piece.id %>"
+       class="piece-container current-player"
+       data-controller="move"
+       data-move-id-value="<%= piece.id %>"
+       style="<%= transform_style %>"
+       data-action="click->move#selectPiece"
+  >
+    <%= image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece') %>
+  </div>
+<% else %>
+  <div id="piece_<%= piece.id %>"
+       class="piece-container"
+       style="<%= transform_style %>">
+    <%= image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece') %>
+  </div>
+<% end %>

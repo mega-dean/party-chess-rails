@@ -1,12 +1,15 @@
 class SessionsController < ApplicationController
   def create
-    # FIXME error handling
+    # CLEANUP error handling
     game = Game.find(params[:game_id])
+
+    # CLEANUP tmp
     player = game.players.create!(is_black: [true, false].sample)
     pieces = game.pieces_by_board[[0, 0]]
     occupied_squares = Set.new(pieces.map(&:square))
     square = (0..64).find { |idx| !occupied_squares.include?(idx) }
     player.pieces.create!(kind: Piece::KINDS.sample, square: square)
+
     join_game(player, game)
   end
 
