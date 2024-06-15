@@ -91,6 +91,13 @@ html {
     background-color: rgba(20, 150, 150, 0.5);
 }
 
+.pending-move {
+    position: absolute;
+    height: 0.1rem;
+    background-color: rgba(20, 150, 150, 0.5);
+    transform-origin: 0 50%;
+}
+
 img.piece {
     max-width: 100%;
     position: absolute;

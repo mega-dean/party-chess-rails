@@ -7,41 +7,76 @@ class GameTest < ActiveSupport::TestCase
 
     player.pieces.create!(square: 0, kind: 'knight')
 
-    assert_equal(
-      [[0, 0]],
-      game.pieces_by_board.keys,
-    )
+    {
+      [0, 0] => 1,
+      [1, 0] => 0,
+      [0, 1] => 0,
+      [1, 1] => 0,
+    }.each do |coords, expected|
+      assert_equal(
+        expected,
+        game.pieces_by_board[coords].count,
+      )
+    end
 
     player.pieces.create!(square: 1, kind: 'knight')
 
-    assert_equal(
-      [[0, 0]],
-      game.pieces_by_board.keys,
-    )
+    {
+      [0, 0] => 2,
+      [1, 0] => 0,
+      [0, 1] => 0,
+      [1, 1] => 0,
+    }.each do |coords, expected|
+      assert_equal(
+        expected,
+        game.pieces_by_board[coords].count,
+      )
+    end
 
     player.pieces.create!(square: 64, kind: 'knight')
 
-    assert_equal(
-      [[0, 0], [1, 0]],
-      game.pieces_by_board.keys,
-    )
+    {
+      [0, 0] => 2,
+      [1, 0] => 1,
+      [0, 1] => 0,
+      [1, 1] => 0,
+    }.each do |coords, expected|
+      assert_equal(
+        expected,
+        game.pieces_by_board[coords].count,
+      )
+    end
 
     player.pieces.create!(square: 64 * 3, kind: 'knight')
 
-    assert_equal(
-      [[0, 0], [1, 0], [1, 1]],
-      game.pieces_by_board.keys,
-    )
+    {
+      [0, 0] => 2,
+      [1, 0] => 1,
+      [0, 1] => 0,
+      [1, 1] => 1,
+    }.each do |coords, expected|
+      assert_equal(
+        expected,
+        game.pieces_by_board[coords].count,
+      )
+    end
 
     player.pieces.create!(square: 64 * 2, kind: 'knight')
 
-    assert_equal(
-      [[0, 0], [1, 0], [1, 1], [0, 1]],
-      game.pieces_by_board.keys,
-    )
+    {
+      [0, 0] => 2,
+      [1, 0] => 1,
+      [0, 1] => 1,
+      [1, 1] => 1,
+    }.each do |coords, expected|
+      assert_equal(
+        expected,
+        game.pieces_by_board[coords].count,
+      )
+    end
   end
 
-  test "get_square_idx" do
+  test "location_to_idx" do
     game = Game.new(boards_wide: 10, boards_tall: 10)
     cases = {
       [ 0, 0, 0, 0 ] => 0,
@@ -55,12 +90,12 @@ class GameTest < ActiveSupport::TestCase
     cases.each do |c, expected|
       assert_equal(
         expected,
-        game.get_square_idx(board_x: c[0], board_y: c[1], x: c[2], y: c[3]),
+        game.location_to_idx({ board_x: c[0], board_y: c[1], x: c[2], y: c[3] }),
       )
     end
   end
 
-  test "from_square_idx" do
+  test "idx_to_location" do
     game = Game.new(boards_wide: 10, boards_tall: 10)
     cases = {
       0 => [ 0, 0, 0, 0 ],
@@ -72,7 +107,7 @@ class GameTest < ActiveSupport::TestCase
       1379 => [ 1, 2, 3, 4 ],
     }
     cases.each do |idx, expected|
-      h = game.from_square_idx(idx)
+      h = game.idx_to_location(idx)
 
       assert_equal(expected[0], h[:board_x], 'board_x')
       assert_equal(expected[1], h[:board_y], 'board_x')

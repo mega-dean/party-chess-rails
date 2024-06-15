@@ -1,16 +1,7 @@
 class Game < ApplicationRecord
   has_many :players
 
-  def all_pieces
-    players.includes(:pieces).reduce({}) do |acc, player|
-      player.pieces.each do |piece|
-        acc[piece.square] = piece
-      end
-      acc
-    end
-  end
-
-  def pieces_by_board
+  def board_hash
     h = {}
 
     self.boards_tall.times do |board_y|
@@ -19,9 +10,15 @@ class Game < ApplicationRecord
       end
     end
 
+    h
+  end
+
+  def pieces_by_board
+    h = self.board_hash
+
     players.includes(:pieces).each do |player|
       player.pieces.each do |piece|
-        location = self.from_square_idx(piece.square)
+        location = self.idx_to_location(piece.square)
         h[[location[:board_x], location[:board_y]]] << piece
       end
     end
@@ -49,16 +46,16 @@ class Game < ApplicationRecord
   # |                 |                 |
   # |                 |                 |
   # + - - - - - - - - + - - - - - - - - +
-  def get_square_idx(board_x:, board_y:, x:, y:)
+  def location_to_idx(location)
     squares_per_board_row = self.boards_wide * 64
 
-    (board_y * squares_per_board_row) +
-      (board_x * 64) +
-      (y * 8) +
-      x
+    (location[:board_y] * squares_per_board_row) +
+      (location[:board_x] * 64) +
+      (location[:y] * 8) +
+      location[:x]
   end
 
-  def from_square_idx(idx)
+  def idx_to_location(idx)
     squares_per_board_row = self.boards_wide * 64
 
     board_y = idx / squares_per_board_row

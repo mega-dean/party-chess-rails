@@ -6,6 +6,8 @@ export default class extends Controller {
     selectedPieceId: Number,
     targetX: Number,
     targetY: Number,
+    targetBoardX: Number,
+    targetBoardY: Number,
   }
 
   selectPiece() {
@@ -18,11 +20,13 @@ export default class extends Controller {
   }
 
   selectTarget() {
-    console.log(`selecting target ${this.targetXValue} ${this.targetYValue}`);
-    // TODO Post move to backend.
-    // - also need to unset selectedPiece, and remove all the target squares (which can be handled by a game_board
-    //   broadcast from the /make_move route)
-    // this.post_json('/players/select_piece', { piece_id: this.selectedPieceId });
+    this.post_json('/moves', {
+      piece_id: this.selectedPieceIdValue,
+      target_x: this.targetXValue,
+      target_y: this.targetYValue,
+      target_board_x: this.targetBoardXValue,
+      target_board_y: this.targetBoardYValue,
+    });
   }
 
   post_json(url, body) {
