@@ -49,6 +49,17 @@ html {
     transition: transform 0.5s ease;
 }
 
+#target-moves {
+    position: absolute;
+}
+
+.move-target {
+    background-color: rgba(220, 150, 150, 0.5);
+    position: absolute;
+    width: 4rem;
+    height: 4rem;
+}
+
 .join-button {
     display: inline-block;
 }
@@ -78,13 +89,6 @@ html {
 
 .current-player {
     background-color: rgba(20, 150, 150, 0.5);
-}
-
-.move-target {
-    background-color: rgba(220, 150, 150, 0.5);
-    position: absolute;
-    height: 4rem;
-    width: 4rem;
 }
 
 img.piece {

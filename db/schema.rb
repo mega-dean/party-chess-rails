@@ -20,13 +20,11 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_09_145056) do
   end
 
   create_table "moves", force: :cascade do |t|
-    t.integer "number", null: false
-    t.integer "to_square", null: false
-    t.integer "from_square", null: false
-    t.integer "player_id"
+    t.integer "target_square", null: false
+    t.integer "piece_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["player_id"], name: "index_moves_on_player_id"
+    t.index ["piece_id"], name: "index_moves_on_piece_id"
   end
 
   create_table "pieces", force: :cascade do |t|

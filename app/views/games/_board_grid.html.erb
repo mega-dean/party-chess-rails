@@ -1,15 +1,21 @@
+<%
+target_moves ||= []
+selected_piece ||= nil
+pieces = player.game.pieces_by_board
+%>
+
 <div id='board-grid' class='board-grid'>
-  <% game.boards_tall.times do |board_y| %>
+  <% player.game.boards_tall.times do |board_y| %>
     <div class='board-row'>
-      <% game.boards_wide.times do |board_x| %>
+      <% player.game.boards_wide.times do |board_x| %>
         <%
         pieces_on_board = pieces[[board_x, board_y]]
         has_piece_on_board = pieces_on_board.any? do |piece|
-          piece.player.id == current_player&.id
+          piece.player.id == player&.id
         end
         %>
 
-        <div class="board" id="board_<%= board_x %>_<%= board_y %>">
+        <div class="board">
           <% 8.times do |y| %>
             <% 8.times do |x| %>
               <% span_class = "#{y%2 == x%2 ? 'light' : 'dark'}-#{has_piece_on_board ? 'revealed' : 'obscured'}" %>
@@ -18,7 +24,19 @@
           <% end %>
           <% if has_piece_on_board %>
             <% pieces_on_board.each do |piece| %>
-              <%= render partial: piece, locals: { current_player: current_player } %>
+              <%= render partial: piece, locals: { player: player, selected_piece: selected_piece } %>
+            <% end %>
+          <% end %>
+
+          <% target_moves.each do |location| %>
+            <% if location[:board_x] == board_x && location[:board_y] == board_y %>
+              <div class="move-target"
+                   data-controller="move"
+                   data-move-target-x-value="<%= location[:x] %>"
+                   data-move-target-y-value="<%= location[:y] %>"
+                   data-action="click->move#selectTarget"
+                   style="<%= get_translate(location) %>">
+              </div>
             <% end %>
           <% end %>
         </div>

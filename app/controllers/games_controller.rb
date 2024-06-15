@@ -4,7 +4,6 @@ class GamesController < ApplicationController
   end
 
   def show
-    @game = Game.first
-    @pieces = @game.pieces_by_board
+    @player = current_player
   end
 end
