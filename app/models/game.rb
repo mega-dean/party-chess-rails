@@ -76,4 +76,63 @@ class Game < ApplicationRecord
       y: y,
     }
   end
+
+  def process_current_moves
+    # TODO
+    # self.update!(current_turn: self.current_turn + 1)
+    self.pieces_by_board.map do |(board_x, board_y), pieces|
+      steps_by_piece = {}
+
+      # CLEANUP make sure this .includes is actually helping
+      moves = Move.includes(:piece).where(turn: self.current_turn, piece_id: pieces.map(&:id))
+      piece_ids = Set.new(moves.map(&:piece_id))
+
+      pieces_without_move = pieces.select do |piece|
+        !piece_ids.include?(piece.id)
+      end
+
+      moves.each do |move|
+        steps_by_piece[move.piece] = move.to_steps
+      end
+
+      pieces_without_move.each do |piece|
+        steps_by_piece[piece] = [piece.square] * 8
+      end
+
+      bumped_pieces = Set.new
+
+      8.times.map do |idx|
+        h = {}
+
+        steps_by_piece.each do |piece, steps|
+          h[steps[idx]] ||= {}
+          h[steps[idx]][:moving] ||= []
+
+          if bumped_pieces.include?(piece.id)
+            h[piece.square] ||= {}
+            h[piece.square][:moving] ||= []
+            h[piece.square][:initial] = piece.id
+          elsif piece.square == steps[idx]
+            h[steps[idx]][:initial] = piece.id
+          elsif idx > 0 && steps[idx] == steps[idx - 1]
+            h[steps[idx]][:moved] = piece.id
+          else
+            h[steps[idx]][:moving] << piece.id
+          end
+        end
+
+        h.each do |square, moves|
+          bump_moving_pieces =
+            moves[:moving].length > 1 ||
+            moves[:moving].length == 1 && (moves[:initial] || moves[:moved])
+
+          if bump_moving_pieces
+            bumped_pieces.merge(moves[:moving])
+          end
+        end
+
+        h
+      end
+    end
+  end
 end

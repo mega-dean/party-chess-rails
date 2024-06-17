@@ -16,7 +16,9 @@ selected_piece ||= nil
           <% 8.times do |y| %>
             <% 8.times do |x| %>
               <% span_class = "#{y%2 == x%2 ? 'light' : 'dark'}-#{has_piece_on_board ? 'revealed' : 'obscured'}" %>
-              <span class="square <%= span_class %>"></span>
+              <span class="square <%= span_class %>">
+                <%= player.game.location_to_idx({board_x: board_x, board_y: board_y, x: x, y: y}) %>
+              </span>
             <% end %>
           <% end %>
           <% if has_piece_on_board %>
