@@ -9,18 +9,19 @@ class Piece < ApplicationRecord
   }
 
   def make_move(location)
-    target_square = self.player.game.location_to_idx({
+    target_square = game.location_to_idx({
       board_x: location[:target_board_x],
       board_y: location[:target_board_y],
       x: location[:target_x],
       y: location[:target_y],
     })
 
-    # CLEANUP use one of the first_or_ methods
-    move = if self.moves.first
-      self.moves.first.update!(target_square: target_square)
+    move = self.moves.find_by(turn: game.current_turn)
+
+    if move
+      move.update!(target_square: target_square)
     else
-      self.moves.create!(target_square: target_square)
+      self.moves.create!(target_square: target_square, turn: game.current_turn)
     end
 
     broadcast_replace_to "game_board", target: 'board-grid', partial: "games/board_grid", locals: {
@@ -87,12 +88,12 @@ class Piece < ApplicationRecord
 
   def get_moves(count, &blk)
     count.times.map do |i|
-      self.player.game.idx_to_location(yield(i + 1))
+      game.idx_to_location(yield(i + 1))
     end
   end
 
   def knight_moves
-    current_location = self.player.game.idx_to_location(self.square)
+    current_location = game.idx_to_location(self.square)
 
     [
       game.idx_to_location(self.square - 17),
@@ -110,6 +111,6 @@ class Piece < ApplicationRecord
   end
 
   def game
-    self.player.game
+    @game ||= self.player.game
   end
 end
