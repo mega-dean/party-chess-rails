@@ -11,7 +11,8 @@ class PiecesController < ApplicationController
   end
 
   def deselect
-    Piece.deselect(current_player)
+    piece = Piece.find(params[:id])
+    piece.deselect
 
     respond_to do |format|
       format.json { head :ok }

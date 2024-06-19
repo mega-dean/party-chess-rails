@@ -12,7 +12,7 @@ export default class extends Controller {
 
   selectPiece() {
     if (this.selectedPieceIdValue === this.idValue) {
-      fetch(`/pieces/deselect`);
+      fetch(`/pieces/${this.selectedPieceIdValue}/deselect`);
     } else {
       this.selectedPieceIdValue = this.idValue;
       fetch(`/pieces/${this.selectedPieceIdValue}/select`);

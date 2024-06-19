@@ -7,10 +7,12 @@
 <div>
   <%= button_to("quit", sessions_destroy_path, { method: :delete }) %>
 </div>
+<div>
+  <%= button_to("process_moves", process_moves_path(id: @player.game.id), { method: :get }) %>
+</div>
+
+<%= turbo_stream_from("player_#{@player.id}_moves") %>
+<%= render partial: "games/moves", locals: { data: nil } %>
 
 <%= turbo_stream_from("game_board") %>
-<%=
-render partial: "games/board_grid", locals: {
-  player: @player,
-}
-%>
+<%= render partial: "games/board_grid", locals: { player: @player } %>

@@ -12,5 +12,7 @@ Rails.application.routes.draw do
   resources :moves, only: [:create]
 
   get 'pieces/:id/select', to: 'pieces#set_as_selected'
-  get 'pieces/deselect', to: 'pieces#deselect'
+  get 'pieces/:id/deselect', to: 'pieces#deselect'
+
+  get 'games/:id/process_moves', to: 'games#process_moves', as: 'process_moves'
 end

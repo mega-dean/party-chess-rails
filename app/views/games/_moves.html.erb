@@ -1,0 +1,12 @@
+
+<div id='game-moves'>
+  <% data&.each do |(board_x, board_y), all_moves| %>
+    <% all_moves.each.with_index do |move_generation, idx| %>
+      <div data-controller="piece"
+           data-piece-wait-time-value="<%= idx * 400 %>"
+           data-piece-move-generation-value="<%= move_generation.to_json %>"
+      >
+      </div>
+    <% end %>
+  <% end %>
+</div>
