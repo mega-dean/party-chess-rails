@@ -88,8 +88,8 @@ class Game < ApplicationRecord
     }
   end
 
-  def process_current_moves
-    move_data = {}
+  def get_move_steps
+    steps = {}
     pieces_by_board = self.pieces_by_board
 
     pieces_by_board.each do |(board_x, board_y), pieces|
@@ -113,12 +113,10 @@ class Game < ApplicationRecord
 
       bumped_pieces = Set.new
 
-      move_data[[board_x, board_y]] = 8.times.map do |idx|
+      steps[[board_x, board_y]] = 8.times.map do |idx|
         h = {}
 
         steps_by_piece.each do |piece, steps|
-          h[steps[idx]] ||= {}
-
           if bumped_pieces.include?(piece.id)
             h[piece.square] ||= {}
             h[piece.square][:bumped] = piece.id
@@ -126,13 +124,18 @@ class Game < ApplicationRecord
             # FIXME need to chain bumps - maybe should happen here?
             # - probably can't though, since it could be a piece that hasn't been reached in steps_by_piece yet
             # - so probably need to handle this with a totally separate iteration
-          elsif piece.square == steps[idx]
-            h[steps[idx]][:initial] = piece.id
-          elsif idx > 0 && steps[idx] == steps[idx - 1]
-            h[steps[idx]][:moved] = piece.id
+            # - try using :bumping vs. :bumped
           else
-            h[steps[idx]][:moving] ||= []
-            h[steps[idx]][:moving] << piece.id
+            h[steps[idx]] ||= {}
+
+            if piece.square == steps[idx]
+              h[steps[idx]][:initial] = piece.id
+            elsif idx > 0 && steps[idx] == steps[idx - 1]
+              h[steps[idx]][:moved] = piece.id
+            else
+              h[steps[idx]][:moving] ||= []
+              h[steps[idx]][:moving] << piece.id
+            end
           end
         end
 
@@ -152,29 +155,45 @@ class Game < ApplicationRecord
       end
     end
 
+    steps
+  end
+
+  def process_current_moves
+    steps = self.get_move_steps
+    self.apply_move_steps(steps)
+    self.broadcast_move_steps(steps)
+  end
+
+  private
+
+  def apply_move_steps(steps_by_board)
     self.update!(current_turn: self.current_turn + 1)
 
-    move_data.each do |_, moves|
-      final = moves.last
+    steps_by_board.each do |_, steps|
+      final = steps.last
 
-      final.each do |target_square, moves_|
+      final.each do |target_square, moves|
         # FIXME will probably need to check :moving here too, for the case where piece moves 8 squares (and is still moving at the last step)
         # - actually that probably means these steps have to be 9 long, to allow for 8 moves + 1 bump
         # - and if bumps can be chained, it would have need to be up to 16
 
-        if piece_id = moves_[:moved]
+        if piece_id = moves[:moved]
           Piece.find(piece_id).update!(square: target_square)
         end
       end
     end
+  end
 
+  def broadcast_move_steps(steps_by_board)
     self.players.each do |player|
+      data = steps_by_board.select do |(board_x, board_y), _steps|
+        pieces_by_board[[board_x, board_y]].any? do |piece|
+          piece.player_id == player.id
+        end
+      end
+
       broadcast_replace_to "player_#{player.id}_moves", target: 'game-moves', partial: "games/moves", locals: {
-        data: move_data.select do |(board_x, board_y), _moves|
-          pieces_by_board[[board_x, board_y]].any? do |piece|
-            piece.player_id == player.id
-          end
-        end,
+        data: data,
       }
     end
   end

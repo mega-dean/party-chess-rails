@@ -1,7 +1,8 @@
-ENV["RAILS_ENV"] ||= "test"
-require_relative "../config/environment"
-require "rails/test_help"
-require "pry"
+ENV['RAILS_ENV'] ||= 'test'
+require_relative '../config/environment'
+require 'rails/test_help'
+require 'pry'
+require 'minitest/autorun'
 
 module ActiveSupport
   class TestCase

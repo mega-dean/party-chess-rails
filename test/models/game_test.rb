@@ -115,4 +115,199 @@ class GameTest < ActiveSupport::TestCase
       assert_equal(expected[3], h[:y], 'y')
     end
   end
+
+  describe "get_move_steps" do
+    before do
+      @game = Game.create(boards_tall: 2, boards_wide: 2)
+      @player = @game.players.create!(is_black: true)
+    end
+
+    it "tracks pieces that haven't moved" do
+      rook = @player.pieces.create!(kind: 'rook', square: 73)
+      move_steps = @game.get_move_steps[[1, 0]]
+
+      assert_equal(
+        [
+          { 73 => { initial: rook.id }},
+          { 73 => { initial: rook.id }},
+          { 73 => { initial: rook.id }},
+          { 73 => { initial: rook.id }},
+          { 73 => { initial: rook.id }},
+          { 73 => { initial: rook.id }},
+          { 73 => { initial: rook.id }},
+          { 73 => { initial: rook.id }},
+        ],
+        move_steps,
+      )
+    end
+
+    describe "rook movement" do
+      it "steps through each square for linear pieces" do
+        rook = @player.pieces.create!(kind: 'rook', square: 73)
+        rook.make_move({
+          board_x: 1,
+          board_y: 0,
+          x: 5,
+          y: 1,
+        })
+        move_steps = @game.get_move_steps[[1, 0]]
+
+        assert_equal(
+          [
+            { 74 => { moving: [rook.id] }},
+            { 75 => { moving: [rook.id] }},
+            { 76 => { moving: [rook.id] }},
+            { 77 => { moving: [rook.id] }},
+            { 77 => { moved: rook.id }},
+            { 77 => { moved: rook.id }},
+            { 77 => { moved: rook.id }},
+            { 77 => { moved: rook.id }},
+          ],
+          move_steps,
+        )
+      end
+    end
+
+    describe "knight movement" do
+      it "moves knights in one step" do
+        knight = @player.pieces.create!(kind: 'knight', square: 20)
+        knight.make_move({
+          board_x: 0,
+          board_y: 0,
+          x: 35,
+          y: 0,
+        })
+        move_steps = @game.get_move_steps[[0, 0]]
+
+        assert_equal(
+          [
+            { 35 => { moving: [knight.id] }},
+            { 35 => { moved: knight.id }},
+            { 35 => { moved: knight.id }},
+            { 35 => { moved: knight.id }},
+            { 35 => { moved: knight.id }},
+            { 35 => { moved: knight.id }},
+            { 35 => { moved: knight.id }},
+            { 35 => { moved: knight.id }},
+          ],
+          move_steps,
+        )
+      end
+    end
+
+    describe "bumped pieces" do
+      it "bumps two pieces that have moved to the same square on the same step" do
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        bishop = @player.pieces.create!(kind: 'bishop', square: 21)
+
+        rook.make_move({
+          board_x: 0,
+          board_y: 0,
+          x: 3,
+          y: 6,
+        })
+
+        bishop.make_move({
+          board_x: 0,
+          board_y: 0,
+          x: 1,
+          y: 6,
+        })
+
+        move_steps = @game.get_move_steps[[0, 0]]
+
+        assert_equal(
+          [
+            { 27 => { moving: [rook.id]}, 28 => { moving: [bishop.id] }},
+            { 35 => { moving: [rook.id, bishop.id] }},
+            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
+            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
+            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
+            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
+            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
+            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
+          ],
+          move_steps,
+        )
+      end
+
+      it "does not bump pieces that move past each other" do
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        queen = @player.pieces.create!(kind: 'queen', square: 22)
+
+        rook.make_move(@game.idx_to_location(23))
+        queen.make_move(@game.idx_to_location(17))
+
+        move_steps = @game.get_move_steps[[0, 0]]
+
+        assert_equal(
+          [
+            { 20 => { moving: [rook.id] }, 21 => { moving: [queen.id] }},
+            { 21 => { moving: [rook.id] }, 20 => { moving: [queen.id] }},
+            { 22 => { moving: [rook.id] }, 19 => { moving: [queen.id] }},
+            { 23 => { moving: [rook.id] }, 18 => { moving: [queen.id] }},
+            { 23 => { moved: rook.id }, 17 => { moving: [queen.id] }},
+            { 23 => { moved: rook.id }, 17 => { moved: queen.id }},
+            { 23 => { moved: rook.id }, 17 => { moved: queen.id }},
+            { 23 => { moved: rook.id }, 17 => { moved: queen.id }},
+          ],
+          move_steps,
+        )
+      end
+
+      it "bumps a piece that arrives to a square second" do
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        queen = @player.pieces.create!(kind: 'queen', square: 22)
+
+        rook.make_move(@game.idx_to_location(21))
+        queen.make_move(@game.idx_to_location(21))
+
+        move_steps = @game.get_move_steps[[0, 0]]
+
+        assert_equal(
+          [
+            { 20 => { moving: [rook.id] }, 21 => { moving: [queen.id] }},
+            { 21 => { moving: [rook.id], moved: queen.id }},
+            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
+            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
+            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
+            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
+            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
+            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
+          ],
+          move_steps,
+        )
+      end
+
+      it "bumps a piece when the other piece hasn't moved" do
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        queen = @player.pieces.create!(kind: 'queen', square: 22)
+
+        rook.make_move(@game.idx_to_location(23))
+
+        move_steps = @game.get_move_steps[[0, 0]]
+
+        assert_equal(
+          [
+            { 20 => { moving: [rook.id] }, 22 => { initial: queen.id }},
+            { 21 => { moving: [rook.id] }, 22 => { initial: queen.id }},
+            { 22 => { moving: [rook.id], initial: queen.id }},
+            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
+          ],
+          move_steps,
+        )
+      end
+
+      # FIXME chain bumps
+    end
+
+    describe "captures" do
+      it "captures pieces of different color"
+      it "does not capture when both capturing pieces bump each other"
+    end
+  end
 end

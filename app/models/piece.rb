@@ -9,12 +9,7 @@ class Piece < ApplicationRecord
   }
 
   def make_move(location)
-    target_square = game.location_to_idx({
-      board_x: location[:target_board_x],
-      board_y: location[:target_board_y],
-      x: location[:target_x],
-      y: location[:target_y],
-    })
+    target_square = game.location_to_idx(location)
 
     move = self.moves.find_by(turn: game.current_turn)
 
