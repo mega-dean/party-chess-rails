@@ -1,4 +1,4 @@
-require "test_helper"
+require "rails_helper"
 
 class GameTest < ActiveSupport::TestCase
   test "pieces_by_board" do
@@ -314,7 +314,7 @@ class GameTest < ActiveSupport::TestCase
 
         move_steps = @game.get_move_steps[[0, 0]]
 
-        binding.pry
+        # binding.pry
 
         assert_equal(
           [
@@ -357,6 +357,12 @@ class GameTest < ActiveSupport::TestCase
         )
       end
 
+      def assert_moves(expected, actual)
+        expected.each.with_index do |step, idx|
+          assert_equal(step, actual[idx], "step #{idx}:")
+        end
+      end
+
       it "captures pieces of different color" do
         rook = @player.pieces.create!(kind: 'rook', square: 19)
 
@@ -367,7 +373,11 @@ class GameTest < ActiveSupport::TestCase
 
         move_steps = @game.get_move_steps[[0, 0]]
 
-        assert_equal(
+        # binding.pry
+
+        assert_equal(1, 2, 'something went wrong')
+
+        assert_moves(
           [
             { 20 => { moving: [rook.id] }, 22 => { initial: queen.id }},
             { 21 => { moving: [rook.id] }, 22 => { initial: queen.id }},

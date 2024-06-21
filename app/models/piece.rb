@@ -58,6 +58,11 @@ class Piece < ApplicationRecord
     # TODO targets to adjacent boards
   end
 
+  # Optional game arg in case game is already in memory.
+  def get_current_move(game = self.player.game)
+    self.moves.where(turn: game.current_turn).only!
+  end
+
   private
 
   def horizontal_moves

@@ -95,15 +95,13 @@ class Game < ApplicationRecord
     pieces_by_board.each do |(board_x, board_y), pieces|
       steps_by_piece = {}
 
-      # CLEANUP make sure this .includes is actually helping
-      moves = Move.includes(:piece).where(turn: self.current_turn, piece_id: pieces.map(&:id))
-      piece_ids = Set.new(moves.map(&:piece_id))
+      moves_by_piece_id = {}
+      moves = Move.includes(:piece).where(turn: self.current_turn, piece_id: pieces.map(&:id)).each do |move|
+        moves_by_piece_id[move.piece.id] = move
+      end
 
       pieces.each do |piece|
-        if piece_ids.include?(piece.id)
-          # CLEANUP add .only!
-          # CLEANUP this could be a method piece.get_current_move(game)
-          move = piece.moves.where(turn: self.current_turn).first
+        if move = moves_by_piece_id[piece.id]
           steps_by_piece[piece] = move.to_steps
         else
           steps_by_piece[piece] = [piece.square] * 8
@@ -116,9 +114,9 @@ class Game < ApplicationRecord
       steps[[board_x, board_y]] = 8.times.map do |idx|
         h = {}
 
-        # CLEANUP comment
         bumped, non_bumped = steps_by_piece.partition { |piece, _| bumped_pieces.include?(piece.id) }
 
+        # Handling all bumped pieces first makes it easier to check for chained bumps.
         bumped.each do |piece, steps|
           h[piece.square] ||= {}
           h[piece.square][:bumped] = piece.id
@@ -126,7 +124,7 @@ class Game < ApplicationRecord
 
         non_bumped.each do |piece, steps|
           if captured_pieces.include?(piece.id)
-            #noop
+            h[steps[idx]][:captured] = piece.id
           else
             h[steps[idx]] ||= {}
 
@@ -148,11 +146,12 @@ class Game < ApplicationRecord
 
         h.each do |square, moves|
           bump_moving_pieces = if moves[:moving]
-            # CLEANUP maybe combine some of these conditions if possible
             if moves[:moving].length > 1
+              # Many pieces arrived at the square at the same time.
               true
             elsif moves[:moving].length == 1
               if moves[:moved]
+                # Another piece already arrived at this square first.
                 true
               elsif moves[:initial]
                 # CLEANUP avoid these lookups
@@ -160,9 +159,9 @@ class Game < ApplicationRecord
                 other_piece = Piece.find(moves[:initial])
 
                 if other_piece.player.is_black == piece.player.is_black
+                  # Another piece was here and didn't move this turn.
                   true
                 else
-                  # CLEANUP maybe just .destroy inline here and remove from steps_by_piece
                   captured_pieces.add(other_piece.id)
                   false
                 end
@@ -199,8 +198,7 @@ class Game < ApplicationRecord
       final = steps.last
 
       final.each do |target_square, moves|
-        # FIXME will probably need to check :moving here too, for the case where piece moves 8 squares (and is still moving at the last step)
-        # - actually that probably means these steps have to be 9 long, to allow for 8 moves + 1 bump
+        # TODO won't work for moves to adjacent boards (steps have to be 9 long, to allow for 8 moves + 1 bump)
 
         if piece_id = moves[:moved]
           Piece.find(piece_id).update!(square: target_square)
