@@ -302,10 +302,61 @@ class GameTest < ActiveSupport::TestCase
         )
       end
 
-      # FIXME chain bumps
+      # FIXME this case tests when bumped piece is before moved piece
+      # - also need to check the opposite case
+      it "chains bumps" do
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        bishop = @player.pieces.create!(kind: 'bishop', square: 26)
+        queen = @player.pieces.create!(kind: 'queen', square: 22)
+
+        rook.make_move(@game.idx_to_location(23))
+        bishop.make_move(@game.idx_to_location(19))
+
+        move_steps = @game.get_move_steps[[0, 0]]
+
+        binding.pry
+
+        assert_equal(
+          [
+            { 20 => { moving: [rook.id] }, 22 => { initial: queen.id }},
+            { 21 => { moving: [rook.id] }, 22 => { initial: queen.id }},
+            { 22 => { moving: [rook.id], initial: queen.id }},
+            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
+          ],
+          move_steps,
+        )
+      end
+
+      # FIXME test bumps after the 8th step
     end
 
     describe "captures" do
+      def assert_captured(piece)
+        assert(
+          begin Piece.find(piece.id)
+          rescue ActiveRecord::RecordNotFound
+            true
+          else
+            false
+          end
+        )
+      end
+
+      def assert_not_captured(piece)
+        assert(
+          begin Piece.find(piece.id)
+          rescue ActiveRecord::RecordNotFound
+            false
+          else
+            true
+          end
+        )
+      end
+
       it "captures pieces of different color" do
         rook = @player.pieces.create!(kind: 'rook', square: 19)
 
@@ -330,14 +381,7 @@ class GameTest < ActiveSupport::TestCase
           move_steps,
         )
 
-        assert(
-          begin Piece.find(queen.id)
-          rescue ActiveRecord::RecordNotFound
-            true
-          else
-            false
-          end
-        )
+        assert_captured(queen)
       end
 
       it "does not capture when both capturing pieces bump each other" do
@@ -366,14 +410,7 @@ class GameTest < ActiveSupport::TestCase
           move_steps,
         )
 
-        assert(
-          begin Piece.find(queen.id)
-          rescue ActiveRecord::RecordNotFound
-            false
-          else
-            true
-          end
-        )
+        assert_not_captured(queen)
       end
 
       it "can capture multiple pieces" do
@@ -401,23 +438,8 @@ class GameTest < ActiveSupport::TestCase
           move_steps,
         )
 
-        assert(
-          begin Piece.find(bishop.id)
-          rescue ActiveRecord::RecordNotFound
-            true
-          else
-            false
-          end
-        )
-
-        assert(
-          begin Piece.find(queen.id)
-          rescue ActiveRecord::RecordNotFound
-            true
-          else
-            false
-          end
-        )
+        assert_captured(bishop)
+        assert_captured(queen)
       end
     end
   end

@@ -99,16 +99,15 @@ class Game < ApplicationRecord
       moves = Move.includes(:piece).where(turn: self.current_turn, piece_id: pieces.map(&:id))
       piece_ids = Set.new(moves.map(&:piece_id))
 
-      pieces_without_move = pieces.select do |piece|
-        !piece_ids.include?(piece.id)
-      end
-
-      moves.each do |move|
-        steps_by_piece[move.piece] = move.to_steps
-      end
-
-      pieces_without_move.each do |piece|
-        steps_by_piece[piece] = [piece.square] * 8
+      pieces.each do |piece|
+        if piece_ids.include?(piece.id)
+          # CLEANUP add .only!
+          # CLEANUP this could be a method piece.get_current_move(game)
+          move = piece.moves.where(turn: self.current_turn).first
+          steps_by_piece[piece] = move.to_steps
+        else
+          steps_by_piece[piece] = [piece.square] * 8
+        end
       end
 
       bumped_pieces = Set.new
@@ -117,24 +116,29 @@ class Game < ApplicationRecord
       steps[[board_x, board_y]] = 8.times.map do |idx|
         h = {}
 
-        steps_by_piece.each do |piece, steps|
+        # CLEANUP comment
+        bumped, non_bumped = steps_by_piece.partition { |piece, _| bumped_pieces.include?(piece.id) }
+
+        bumped.each do |piece, steps|
+          h[piece.square] ||= {}
+          h[piece.square][:bumped] = piece.id
+        end
+
+        non_bumped.each do |piece, steps|
           if captured_pieces.include?(piece.id)
             #noop
-          elsif bumped_pieces.include?(piece.id)
-            h[piece.square] ||= {}
-            h[piece.square][:bumped] = piece.id
-
-            # FIXME need to chain bumps - maybe should happen here?
-            # - probably can't though, since it could be a piece that hasn't been reached in steps_by_piece yet
-            # - so probably need to handle this with a totally separate iteration
-            # - try using :bumping vs. :bumped
           else
             h[steps[idx]] ||= {}
 
             if piece.square == steps[idx]
               h[steps[idx]][:initial] = piece.id
             elsif idx > 0 && steps[idx] == steps[idx - 1]
-              h[steps[idx]][:moved] = piece.id
+              if h[steps[idx]][:bumped]
+                h[piece.square] ||= {}
+                h[piece.square][:bumped] = piece.id
+              else
+                h[steps[idx]][:moved] = piece.id
+              end
             else
               h[steps[idx]][:moving] ||= []
               h[steps[idx]][:moving] << piece.id
@@ -151,14 +155,14 @@ class Game < ApplicationRecord
               if moves[:moved]
                 true
               elsif moves[:initial]
-                # FIXME avoid these lookups
+                # CLEANUP avoid these lookups
                 piece = Piece.find(moves[:moving].first)
                 other_piece = Piece.find(moves[:initial])
 
                 if other_piece.player.is_black == piece.player.is_black
                   true
                 else
-                  # FIXME probably don't need to keep track of captured_pieces set, maybe just .destroy inline here
+                  # CLEANUP maybe just .destroy inline here and remove from steps_by_piece
                   captured_pieces.add(other_piece.id)
                   false
                 end
@@ -197,7 +201,6 @@ class Game < ApplicationRecord
       final.each do |target_square, moves|
         # FIXME will probably need to check :moving here too, for the case where piece moves 8 squares (and is still moving at the last step)
         # - actually that probably means these steps have to be 9 long, to allow for 8 moves + 1 bump
-        # - and if bumps can be chained, it would have need to be up to 16
 
         if piece_id = moves[:moved]
           Piece.find(piece_id).update!(square: target_square)
