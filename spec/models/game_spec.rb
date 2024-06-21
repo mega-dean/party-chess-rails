@@ -1,7 +1,7 @@
 require "rails_helper"
 
-class GameTest < ActiveSupport::TestCase
-  test "pieces_by_board" do
+RSpec.describe Game do
+  specify "pieces_by_board" do
     game = Game.create!(boards_wide: 2, boards_tall: 2)
     player = game.players.create!(is_black: true)
 
@@ -13,10 +13,7 @@ class GameTest < ActiveSupport::TestCase
       [0, 1] => 0,
       [1, 1] => 0,
     }.each do |coords, expected|
-      assert_equal(
-        expected,
-        game.pieces_by_board[coords].count,
-      )
+      expect(game.pieces_by_board[coords].count).to eq(expected)
     end
 
     player.pieces.create!(square: 1, kind: 'knight')
@@ -27,10 +24,7 @@ class GameTest < ActiveSupport::TestCase
       [0, 1] => 0,
       [1, 1] => 0,
     }.each do |coords, expected|
-      assert_equal(
-        expected,
-        game.pieces_by_board[coords].count,
-      )
+      expect(game.pieces_by_board[coords].count).to eq(expected)
     end
 
     player.pieces.create!(square: 64, kind: 'knight')
@@ -41,10 +35,7 @@ class GameTest < ActiveSupport::TestCase
       [0, 1] => 0,
       [1, 1] => 0,
     }.each do |coords, expected|
-      assert_equal(
-        expected,
-        game.pieces_by_board[coords].count,
-      )
+      expect(game.pieces_by_board[coords].count).to eq(expected)
     end
 
     player.pieces.create!(square: 64 * 3, kind: 'knight')
@@ -55,10 +46,7 @@ class GameTest < ActiveSupport::TestCase
       [0, 1] => 0,
       [1, 1] => 1,
     }.each do |coords, expected|
-      assert_equal(
-        expected,
-        game.pieces_by_board[coords].count,
-      )
+      expect(game.pieces_by_board[coords].count).to eq(expected)
     end
 
     player.pieces.create!(square: 64 * 2, kind: 'knight')
@@ -69,14 +57,11 @@ class GameTest < ActiveSupport::TestCase
       [0, 1] => 1,
       [1, 1] => 1,
     }.each do |coords, expected|
-      assert_equal(
-        expected,
-        game.pieces_by_board[coords].count,
-      )
+      expect(game.pieces_by_board[coords].count).to eq(expected)
     end
   end
 
-  test "location_to_idx" do
+  specify "location_to_idx" do
     game = Game.new(boards_wide: 10, boards_tall: 10)
     cases = {
       [ 0, 0, 0, 0 ] => 0,
@@ -88,14 +73,11 @@ class GameTest < ActiveSupport::TestCase
       [ 1, 2, 3, 4 ] => 1379,
     }
     cases.each do |c, expected|
-      assert_equal(
-        expected,
-        game.location_to_idx({ board_x: c[0], board_y: c[1], x: c[2], y: c[3] }),
-      )
+      expect(game.location_to_idx({ board_x: c[0], board_y: c[1], x: c[2], y: c[3] })).to eq(expected)
     end
   end
 
-  test "idx_to_location" do
+  specify "idx_to_location" do
     game = Game.new(boards_wide: 10, boards_tall: 10)
     cases = {
       0 => [ 0, 0, 0, 0 ],
@@ -109,10 +91,10 @@ class GameTest < ActiveSupport::TestCase
     cases.each do |idx, expected|
       h = game.idx_to_location(idx)
 
-      assert_equal(expected[0], h[:board_x], 'board_x')
-      assert_equal(expected[1], h[:board_y], 'board_x')
-      assert_equal(expected[2], h[:x], 'x')
-      assert_equal(expected[3], h[:y], 'y')
+      expect(h[:board_x]).to eq(expected[0])
+      expect(h[:board_y]).to eq(expected[1])
+      expect(h[:x]).to eq(expected[2])
+      expect(h[:y]).to eq(expected[3])
     end
   end
 
@@ -122,21 +104,27 @@ class GameTest < ActiveSupport::TestCase
       @player = @game.players.create!(is_black: true)
     end
 
+    def expect_moves(expected, move_steps = nil)
+      move_steps ||= @game.get_move_steps[[0, 0]]
+
+      expected.each.with_index do |step, idx|
+        expect(move_steps[idx]).to eq(step)
+      end
+
+      remaining_steps = Move::STEPS_PER_TURN - expected.length
+      final_step = expected.last
+
+      remaining_steps.times do |idx|
+        expect(move_steps[expected.length + idx]).to eq(final_step)
+      end
+    end
+
     it "tracks pieces that haven't moved" do
       rook = @player.pieces.create!(kind: 'rook', square: 73)
       move_steps = @game.get_move_steps[[1, 0]]
 
-      assert_equal(
-        [
-          { 73 => { initial: rook.id }},
-          { 73 => { initial: rook.id }},
-          { 73 => { initial: rook.id }},
-          { 73 => { initial: rook.id }},
-          { 73 => { initial: rook.id }},
-          { 73 => { initial: rook.id }},
-          { 73 => { initial: rook.id }},
-          { 73 => { initial: rook.id }},
-        ],
+      expect_moves(
+        [{ 73 => { initial: rook.id }}],
         move_steps,
       )
     end
@@ -152,15 +140,12 @@ class GameTest < ActiveSupport::TestCase
         })
         move_steps = @game.get_move_steps[[1, 0]]
 
-        assert_equal(
+        expect_moves(
           [
             { 74 => { moving: [rook.id] }},
             { 75 => { moving: [rook.id] }},
             { 76 => { moving: [rook.id] }},
             { 77 => { moving: [rook.id] }},
-            { 77 => { moved: rook.id }},
-            { 77 => { moved: rook.id }},
-            { 77 => { moved: rook.id }},
             { 77 => { moved: rook.id }},
           ],
           move_steps,
@@ -177,21 +162,11 @@ class GameTest < ActiveSupport::TestCase
           x: 35,
           y: 0,
         })
-        move_steps = @game.get_move_steps[[0, 0]]
 
-        assert_equal(
-          [
-            { 35 => { moving: [knight.id] }},
-            { 35 => { moved: knight.id }},
-            { 35 => { moved: knight.id }},
-            { 35 => { moved: knight.id }},
-            { 35 => { moved: knight.id }},
-            { 35 => { moved: knight.id }},
-            { 35 => { moved: knight.id }},
-            { 35 => { moved: knight.id }},
-          ],
-          move_steps,
-        )
+        expect_moves([
+          { 35 => { moving: [knight.id] }},
+          { 35 => { moved: knight.id }},
+        ])
       end
     end
 
@@ -214,21 +189,11 @@ class GameTest < ActiveSupport::TestCase
           y: 6,
         })
 
-        move_steps = @game.get_move_steps[[0, 0]]
-
-        assert_equal(
-          [
-            { 27 => { moving: [rook.id]}, 28 => { moving: [bishop.id] }},
-            { 35 => { moving: [rook.id, bishop.id] }},
-            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
-            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
-            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
-            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
-            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
-            { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
-          ],
-          move_steps,
-        )
+        expect_moves([
+          { 27 => { moving: [rook.id]}, 28 => { moving: [bishop.id] }},
+          { 35 => { moving: [rook.id, bishop.id] }},
+          { 19 => { bumped: rook.id }, 21 => { bumped: bishop.id }},
+        ])
       end
 
       it "does not bump pieces that move past each other" do
@@ -238,21 +203,14 @@ class GameTest < ActiveSupport::TestCase
         rook.make_move(@game.idx_to_location(23))
         queen.make_move(@game.idx_to_location(17))
 
-        move_steps = @game.get_move_steps[[0, 0]]
-
-        assert_equal(
-          [
-            { 20 => { moving: [rook.id] }, 21 => { moving: [queen.id] }},
-            { 21 => { moving: [rook.id] }, 20 => { moving: [queen.id] }},
-            { 22 => { moving: [rook.id] }, 19 => { moving: [queen.id] }},
-            { 23 => { moving: [rook.id] }, 18 => { moving: [queen.id] }},
-            { 23 => { moved: rook.id }, 17 => { moving: [queen.id] }},
-            { 23 => { moved: rook.id }, 17 => { moved: queen.id }},
-            { 23 => { moved: rook.id }, 17 => { moved: queen.id }},
-            { 23 => { moved: rook.id }, 17 => { moved: queen.id }},
-          ],
-          move_steps,
-        )
+        expect_moves([
+          { 20 => { moving: [rook.id] }, 21 => { moving: [queen.id] }},
+          { 21 => { moving: [rook.id] }, 20 => { moving: [queen.id] }},
+          { 22 => { moving: [rook.id] }, 19 => { moving: [queen.id] }},
+          { 23 => { moving: [rook.id] }, 18 => { moving: [queen.id] }},
+          { 23 => { moved: rook.id }, 17 => { moving: [queen.id] }},
+          { 23 => { moved: rook.id }, 17 => { moved: queen.id }},
+        ])
       end
 
       it "bumps a piece that arrives to a square second" do
@@ -262,21 +220,11 @@ class GameTest < ActiveSupport::TestCase
         rook.make_move(@game.idx_to_location(21))
         queen.make_move(@game.idx_to_location(21))
 
-        move_steps = @game.get_move_steps[[0, 0]]
-
-        assert_equal(
-          [
-            { 20 => { moving: [rook.id] }, 21 => { moving: [queen.id] }},
-            { 21 => { moving: [rook.id], moved: queen.id }},
-            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
-            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
-            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
-            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
-            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
-            { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
-          ],
-          move_steps,
-        )
+        expect_moves([
+          { 20 => { moving: [rook.id] }, 21 => { moving: [queen.id] }},
+          { 21 => { moving: [rook.id], moved: queen.id }},
+          { 19 => { bumped: rook.id }, 21 => { moved: queen.id }},
+        ])
       end
 
       it "bumps a piece when the other piece hasn't moved" do
@@ -285,25 +233,14 @@ class GameTest < ActiveSupport::TestCase
 
         rook.make_move(@game.idx_to_location(23))
 
-        move_steps = @game.get_move_steps[[0, 0]]
-
-        assert_equal(
-          [
-            { 20 => { moving: [rook.id] }, 22 => { initial: queen.id }},
-            { 21 => { moving: [rook.id] }, 22 => { initial: queen.id }},
-            { 22 => { moving: [rook.id], initial: queen.id }},
-            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
-            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
-            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
-            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
-            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
-          ],
-          move_steps,
-        )
+        expect_moves([
+          { 20 => { moving: [rook.id] }, 22 => { initial: queen.id }},
+          { 21 => { moving: [rook.id] }, 22 => { initial: queen.id }},
+          { 22 => { moving: [rook.id], initial: queen.id }},
+          { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
+        ])
       end
 
-      # FIXME this case tests when bumped piece is before moved piece
-      # - also need to check the opposite case
       it "chains bumps" do
         rook = @player.pieces.create!(kind: 'rook', square: 19)
         bishop = @player.pieces.create!(kind: 'bishop', square: 26)
@@ -312,55 +249,22 @@ class GameTest < ActiveSupport::TestCase
         rook.make_move(@game.idx_to_location(23))
         bishop.make_move(@game.idx_to_location(19))
 
-        move_steps = @game.get_move_steps[[0, 0]]
-
-        # binding.pry
-
-        assert_equal(
-          [
-            { 20 => { moving: [rook.id] }, 22 => { initial: queen.id }},
-            { 21 => { moving: [rook.id] }, 22 => { initial: queen.id }},
-            { 22 => { moving: [rook.id], initial: queen.id }},
-            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
-            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
-            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
-            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
-            { 19 => { bumped: rook.id }, 22 => { initial: queen.id }},
-          ],
-          move_steps,
-        )
+        expect_moves([
+          { 20 => { moving: [rook.id] }, 19 => { moving: [bishop.id] }, 22 => { initial: queen.id }},
+          { 21 => { moving: [rook.id] }, 19 => { moved: bishop.id }, 22 => { initial: queen.id }},
+          { 22 => { moving: [rook.id], initial: queen.id }, 19 => { moved: bishop.id }},
+          { 19 => { bumped: rook.id }, 26 => { bumped: bishop.id }, 22 => { initial: queen.id }},
+        ])
       end
-
-      # FIXME test bumps after the 8th step
     end
 
     describe "captures" do
-      def assert_captured(piece)
-        assert(
-          begin Piece.find(piece.id)
-          rescue ActiveRecord::RecordNotFound
-            true
-          else
-            false
-          end
-        )
+      def expect_captured(piece)
+        expect { Piece.find(piece.id) }.to raise_error(ActiveRecord::RecordNotFound)
       end
 
-      def assert_not_captured(piece)
-        assert(
-          begin Piece.find(piece.id)
-          rescue ActiveRecord::RecordNotFound
-            false
-          else
-            true
-          end
-        )
-      end
-
-      def assert_moves(expected, actual)
-        expected.each.with_index do |step, idx|
-          assert_equal(step, actual[idx], "step #{idx}:")
-        end
+      def expect_not_captured(piece)
+        expect { Piece.find(piece.id) }.not_to raise_error
       end
 
       it "captures pieces of different color" do
@@ -373,25 +277,17 @@ class GameTest < ActiveSupport::TestCase
 
         move_steps = @game.get_move_steps[[0, 0]]
 
-        # binding.pry
-
-        assert_equal(1, 2, 'something went wrong')
-
-        assert_moves(
+        expect_moves(
           [
             { 20 => { moving: [rook.id] }, 22 => { initial: queen.id }},
             { 21 => { moving: [rook.id] }, 22 => { initial: queen.id }},
             { 22 => { moving: [rook.id], initial: queen.id }},
-            { 22 => { moved: rook.id }, },
-            { 22 => { moved: rook.id }, },
-            { 22 => { moved: rook.id }, },
-            { 22 => { moved: rook.id }, },
-            { 22 => { moved: rook.id }, },
+            { 22 => { moved: rook.id, captured: queen.id }, },
           ],
           move_steps,
         )
 
-        assert_captured(queen)
+        expect_captured(queen)
       end
 
       it "does not capture when both capturing pieces bump each other" do
@@ -406,7 +302,7 @@ class GameTest < ActiveSupport::TestCase
 
         move_steps = @game.get_move_steps[[0, 0]]
 
-        assert_equal(
+        expect_moves(
           [
             { 20 => { moving: [rook.id] }, 36 => { moving: [bishop.id] }, 22 => { initial: queen.id }},
             { 21 => { moving: [rook.id] }, 29 => { moving: [bishop.id] }, 22 => { initial: queen.id }},
@@ -420,7 +316,7 @@ class GameTest < ActiveSupport::TestCase
           move_steps,
         )
 
-        assert_not_captured(queen)
+        expect_not_captured(queen)
       end
 
       it "can capture multiple pieces" do
@@ -432,24 +328,15 @@ class GameTest < ActiveSupport::TestCase
 
         rook.make_move(@game.idx_to_location(22))
 
-        move_steps = @game.get_move_steps[[0, 0]]
+        expect_moves([
+          { 20 => { moving: [rook.id], initial: bishop.id }, 22 => { initial: queen.id }},
+          { 21 => { moving: [rook.id] }, 20 => { captured: bishop.id }, 22 => { initial: queen.id }},
+          { 22 => { moving: [rook.id], initial: queen.id }, 20 => { captured: bishop.id }},
+          { 22 => { moved: rook.id, captured: queen.id }, 20 => { captured: bishop.id }},
+        ])
 
-        assert_equal(
-          [
-            { 20 => { moving: [rook.id], initial: bishop.id }, 22 => { initial: queen.id }},
-            { 21 => { moving: [rook.id] }, 22 => { initial: queen.id }},
-            { 22 => { moving: [rook.id], initial: queen.id }},
-            { 22 => { moved: rook.id }, },
-            { 22 => { moved: rook.id }, },
-            { 22 => { moved: rook.id }, },
-            { 22 => { moved: rook.id }, },
-            { 22 => { moved: rook.id }, },
-          ],
-          move_steps,
-        )
-
-        assert_captured(bishop)
-        assert_captured(queen)
+        expect_captured(bishop)
+        expect_captured(queen)
       end
     end
   end

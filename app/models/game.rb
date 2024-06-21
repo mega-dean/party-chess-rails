@@ -100,18 +100,20 @@ class Game < ApplicationRecord
         moves_by_piece_id[move.piece.id] = move
       end
 
+      pieces_by_id = {}
       pieces.each do |piece|
+        pieces_by_id[piece.id] = piece
         if move = moves_by_piece_id[piece.id]
           steps_by_piece[piece] = move.to_steps
         else
-          steps_by_piece[piece] = [piece.square] * 8
+          steps_by_piece[piece] = [piece.square] * Move::STEPS_PER_TURN
         end
       end
 
       bumped_pieces = Set.new
       captured_pieces = Set.new
 
-      steps[[board_x, board_y]] = 8.times.map do |idx|
+      steps[[board_x, board_y]] = Move::STEPS_PER_TURN.times.map do |idx|
         h = {}
 
         bumped, non_bumped = steps_by_piece.partition { |piece, _| bumped_pieces.include?(piece.id) }
@@ -123,11 +125,11 @@ class Game < ApplicationRecord
         end
 
         non_bumped.each do |piece, steps|
+          h[steps[idx]] ||= {}
+
           if captured_pieces.include?(piece.id)
             h[steps[idx]][:captured] = piece.id
           else
-            h[steps[idx]] ||= {}
-
             if piece.square == steps[idx]
               h[steps[idx]][:initial] = piece.id
             elsif idx > 0 && steps[idx] == steps[idx - 1]
@@ -154,11 +156,10 @@ class Game < ApplicationRecord
                 # Another piece already arrived at this square first.
                 true
               elsif moves[:initial]
-                # CLEANUP avoid these lookups
-                piece = Piece.find(moves[:moving].first)
-                other_piece = Piece.find(moves[:initial])
+                moving_piece = pieces_by_id[moves[:moving].only!]
+                other_piece = pieces_by_id[moves[:initial]]
 
-                if other_piece.player.is_black == piece.player.is_black
+                if other_piece.player.is_black == moving_piece.player.is_black
                   # Another piece was here and didn't move this turn.
                   true
                 else

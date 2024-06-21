@@ -1,4 +1,7 @@
 class Move < ApplicationRecord
+  # TODO Will need to change this to 9 to support moves to adjacent boards.
+  STEPS_PER_TURN = 8
+
   belongs_to :piece
 
   def to_steps
@@ -9,7 +12,7 @@ class Move < ApplicationRecord
       'queen' => :get_queen_moves,
     }[self.piece.kind])
 
-    8.times do |idx|
+    STEPS_PER_TURN.times do |idx|
       if !steps[idx]
         steps[idx] = steps[idx - 1]
       end

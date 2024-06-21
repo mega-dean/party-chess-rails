@@ -8,6 +8,7 @@ export default class extends Controller {
 
   connect() {
     new Promise((resolve) => setTimeout(resolve, this.waitTimeValue)).then(() => {
+      // FIXME try using Object type
       const parsed = JSON.parse(this.moveGenerationValue);
       for (let [targetSquare, moves] of Object.entries(parsed)) {
         // CLEANUP
@@ -21,6 +22,7 @@ export default class extends Controller {
     });
 
     [...document.getElementsByClassName('pending-move')].forEach((node) => node.remove());
+    // FIXME maybe also need to remove captured pieces here
   }
 
   movePieceTo(id, dest) {

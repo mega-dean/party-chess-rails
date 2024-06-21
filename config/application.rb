@@ -26,7 +26,7 @@ module PartyChessRails
   end
 end
 
-class ActiveRecord::Relation
+module Enumerable
   def only!
     if self.length == 1
       self.first
