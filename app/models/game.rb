@@ -112,12 +112,15 @@ class Game < ApplicationRecord
       end
 
       bumped_pieces = Set.new
+      captured_pieces = Set.new
 
       steps[[board_x, board_y]] = 8.times.map do |idx|
         h = {}
 
         steps_by_piece.each do |piece, steps|
-          if bumped_pieces.include?(piece.id)
+          if captured_pieces.include?(piece.id)
+            #noop
+          elsif bumped_pieces.include?(piece.id)
             h[piece.square] ||= {}
             h[piece.square][:bumped] = piece.id
 
@@ -140,10 +143,27 @@ class Game < ApplicationRecord
         end
 
         h.each do |square, moves|
-          # FIXME need to check colors and handle captures
           bump_moving_pieces = if moves[:moving]
-            moves[:moving].length > 1 ||
-              moves[:moving].length == 1 && (moves[:initial] || moves[:moved])
+            # CLEANUP maybe combine some of these conditions if possible
+            if moves[:moving].length > 1
+              true
+            elsif moves[:moving].length == 1
+              if moves[:moved]
+                true
+              elsif moves[:initial]
+                # FIXME avoid these lookups
+                piece = Piece.find(moves[:moving].first)
+                other_piece = Piece.find(moves[:initial])
+
+                if other_piece.player.is_black == piece.player.is_black
+                  true
+                else
+                  # FIXME probably don't need to keep track of captured_pieces set, maybe just .destroy inline here
+                  captured_pieces.add(other_piece.id)
+                  false
+                end
+              end
+            end
           end
 
           if bump_moving_pieces
@@ -153,6 +173,8 @@ class Game < ApplicationRecord
 
         h
       end
+
+      Piece.where(id: captured_pieces).destroy_all
     end
 
     steps

@@ -306,8 +306,119 @@ class GameTest < ActiveSupport::TestCase
     end
 
     describe "captures" do
-      it "captures pieces of different color"
-      it "does not capture when both capturing pieces bump each other"
+      it "captures pieces of different color" do
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
+
+        other_player = @game.players.create!(is_black: false)
+        queen = other_player.pieces.create!(kind: 'queen', square: 22)
+
+        rook.make_move(@game.idx_to_location(22))
+
+        move_steps = @game.get_move_steps[[0, 0]]
+
+        assert_equal(
+          [
+            { 20 => { moving: [rook.id] }, 22 => { initial: queen.id }},
+            { 21 => { moving: [rook.id] }, 22 => { initial: queen.id }},
+            { 22 => { moving: [rook.id], initial: queen.id }},
+            { 22 => { moved: rook.id }, },
+            { 22 => { moved: rook.id }, },
+            { 22 => { moved: rook.id }, },
+            { 22 => { moved: rook.id }, },
+            { 22 => { moved: rook.id }, },
+          ],
+          move_steps,
+        )
+
+        assert(
+          begin Piece.find(queen.id)
+          rescue ActiveRecord::RecordNotFound
+            true
+          else
+            false
+          end
+        )
+      end
+
+      it "does not capture when both capturing pieces bump each other" do
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        bishop = @player.pieces.create!(kind: 'bishop', square: 43)
+
+        other_player = @game.players.create!(is_black: false)
+        queen = other_player.pieces.create!(kind: 'queen', square: 22)
+
+        rook.make_move(@game.idx_to_location(22))
+        bishop.make_move(@game.idx_to_location(22))
+
+        move_steps = @game.get_move_steps[[0, 0]]
+
+        assert_equal(
+          [
+            { 20 => { moving: [rook.id] }, 36 => { moving: [bishop.id] }, 22 => { initial: queen.id }},
+            { 21 => { moving: [rook.id] }, 29 => { moving: [bishop.id] }, 22 => { initial: queen.id }},
+            { 22 => { moving: [rook.id, bishop.id], initial: queen.id }},
+            { 19 => { bumped: rook.id }, 43 => { bumped: bishop.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 43 => { bumped: bishop.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 43 => { bumped: bishop.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 43 => { bumped: bishop.id }, 22 => { initial: queen.id }},
+            { 19 => { bumped: rook.id }, 43 => { bumped: bishop.id }, 22 => { initial: queen.id }},
+          ],
+          move_steps,
+        )
+
+        assert(
+          begin Piece.find(queen.id)
+          rescue ActiveRecord::RecordNotFound
+            false
+          else
+            true
+          end
+        )
+      end
+
+      it "can capture multiple pieces" do
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
+
+        other_player = @game.players.create!(is_black: false)
+        queen = other_player.pieces.create!(kind: 'queen', square: 22)
+        bishop = other_player.pieces.create!(kind: 'bishop', square: 20)
+
+        rook.make_move(@game.idx_to_location(22))
+
+        move_steps = @game.get_move_steps[[0, 0]]
+
+        assert_equal(
+          [
+            { 20 => { moving: [rook.id], initial: bishop.id }, 22 => { initial: queen.id }},
+            { 21 => { moving: [rook.id] }, 22 => { initial: queen.id }},
+            { 22 => { moving: [rook.id], initial: queen.id }},
+            { 22 => { moved: rook.id }, },
+            { 22 => { moved: rook.id }, },
+            { 22 => { moved: rook.id }, },
+            { 22 => { moved: rook.id }, },
+            { 22 => { moved: rook.id }, },
+          ],
+          move_steps,
+        )
+
+        assert(
+          begin Piece.find(bishop.id)
+          rescue ActiveRecord::RecordNotFound
+            true
+          else
+            false
+          end
+        )
+
+        assert(
+          begin Piece.find(queen.id)
+          rescue ActiveRecord::RecordNotFound
+            true
+          else
+            false
+          end
+        )
+      end
     end
   end
 end
