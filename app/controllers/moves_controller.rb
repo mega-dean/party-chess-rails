@@ -1,13 +1,7 @@
 class MovesController < ApplicationController
   def create
     piece = Piece.find(params[:piece_id])
-    target_location = {
-      board_x: params[:target_board_x],
-      board_y: params[:target_board_y],
-      x: params[:target_x],
-      y: params[:target_y],
-    }
-    piece.try_move(target_location)
+    piece.try_move(params[:target_idx])
     head :ok
   end
 end

@@ -8,7 +8,9 @@ class ApplicationController < ActionController::Base
   end
 
   helper_method :get_translate
-  def get_translate(location)
+  def get_translate(game, target_idx)
+    location = game.idx_to_location(target_idx)
+
     square_rem = 4
     padding_rem = 0.6
     x_rem = (square_rem * location[:x]) + padding_rem

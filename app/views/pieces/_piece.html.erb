@@ -1,6 +1,6 @@
 <%
 location = piece.player.game.idx_to_location(piece.square)
-transform_style = get_translate(location)
+transform_style = get_translate(piece.player.game, piece.square)
 %>
 
 <% if piece.player.id == player&.id %>

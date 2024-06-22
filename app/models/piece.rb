@@ -8,12 +8,10 @@ class Piece < ApplicationRecord
     in: KINDS
   }
 
-  def try_move(location)
-    valid_target_locations = self.get_target_moves
+  def try_move(target_square)
+    valid_target_squares = self.get_target_squares
 
-    if valid_target_locations.any? {|_, targets| targets.include?(location) }
-      target_square = game.location_to_idx(location)
-
+    if valid_target_squares.any? {|_, squares| squares.include?(target_square) }
       move = self.moves.find_by(turn: game.current_turn)
 
       if move
@@ -32,7 +30,7 @@ class Piece < ApplicationRecord
   def set_as_selected
     broadcast_replace_to "game_board", target: 'board-grid', partial: "games/board_grid", locals: {
       player: self.player,
-      target_moves: self.get_target_moves,
+      target_moves: self.get_target_squares,
       selected_piece: self,
     }
   end
@@ -45,16 +43,16 @@ class Piece < ApplicationRecord
     }
   end
 
-  def get_target_moves
-    location = game.idx_to_location(self.square)
+  def get_target_squares
+    current_location = game.idx_to_location(self.square)
 
     target_moves = game.board_hash
-    target_moves[[location[:board_x], location[:board_y]]] =
+    target_moves[[current_location[:board_x], current_location[:board_y]]] =
       {
         'rook' => horizontal_moves,
         'bishop' => diagonal_moves,
         'queen' => diagonal_moves + horizontal_moves,
-        'knight' => knight_moves
+        'knight' => knight_moves,
       }[self.kind] || raise("unreachable: unknown kind #{self.kind}")
 
     target_moves
@@ -94,27 +92,27 @@ class Piece < ApplicationRecord
 
   def get_moves(count, &blk)
     count.times.map do |i|
-      game.idx_to_location(yield(i + 1))
+      yield(i + 1)
     end
   end
 
-  # . . 0 . 1 . .
-  # . 2 . . . 3 .
-  # . . . K . . .
-  # . 4 . . . 5 .
-  # . . 6 . 7 . .
   def knight_moves
     current_location = game.idx_to_location(self.square)
 
+    # . . 0 . 1 . .
+    # . 2 . . . 3 .
+    # . . . K . . .
+    # . 4 . . . 5 .
+    # . . 6 . 7 . .
     moves = [
-      game.idx_to_location(self.square - 17),
-      game.idx_to_location(self.square - 15),
-      game.idx_to_location(self.square - 10),
-      game.idx_to_location(self.square - 6),
-      game.idx_to_location(self.square + 6),
-      game.idx_to_location(self.square + 10),
-      game.idx_to_location(self.square + 15),
-      game.idx_to_location(self.square + 17),
+      self.square - 17,
+      self.square - 15,
+      self.square - 10,
+      self.square - 6,
+      self.square + 6,
+      self.square + 10,
+      self.square + 15,
+      self.square + 17,
     ]
 
     move_indexes = (0..7).to_set
@@ -144,9 +142,7 @@ class Piece < ApplicationRecord
     end
 
     moves.select.with_index do |location, idx|
-      move_indexes.include?(idx) &&
-        current_location[:board_x] == location[:board_x] &&
-        current_location[:board_y] == location[:board_y]
+      move_indexes.include?(idx)
     end
   end
 

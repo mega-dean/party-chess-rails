@@ -5,7 +5,7 @@ class Move < ApplicationRecord
   belongs_to :piece
 
   def to_steps
-    steps = send({
+    steps = self.send({
       'rook' => :get_rook_moves,
       'knight' => :get_knight_moves,
       'bishop' => :get_bishop_moves,

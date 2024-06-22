@@ -4,10 +4,7 @@ export default class extends Controller {
   static values = {
     id: Number,
     selectedPieceId: Number,
-    targetX: Number,
-    targetY: Number,
-    targetBoardX: Number,
-    targetBoardY: Number,
+    targetIdx: Number,
   }
 
   selectPiece() {
@@ -22,10 +19,7 @@ export default class extends Controller {
   selectTarget() {
     this.post_json('/moves', {
       piece_id: this.selectedPieceIdValue,
-      target_x: this.targetXValue,
-      target_y: this.targetYValue,
-      target_board_x: this.targetBoardXValue,
-      target_board_y: this.targetBoardYValue,
+      target_idx: this.targetIdxValue,
     });
   }
 

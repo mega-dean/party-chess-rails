@@ -27,17 +27,13 @@ selected_piece ||= nil
             <% end %>
           <% end %>
 
-          <!-- TODO this won't work for moves to adjacent boards -->
-          <% target_moves[[board_x, board_y]].each do |location| %>
+          <% target_moves[[board_x, board_y]].each do |target_idx| %>
             <div class="move-target"
                  data-controller="move"
-                 data-move-target-x-value="<%= location[:x] %>"
-                 data-move-target-y-value="<%= location[:y] %>"
-                 data-move-target-board-x-value="<%= location[:board_x] %>"
-                 data-move-target-board-y-value="<%= location[:board_y] %>"
+                 data-move-target-idx-value="<%= target_idx %>"
                  data-move-selected-piece-id-value="<%= selected_piece&.id %>"
                  data-action="click->move#selectTarget"
-                 style="<%= get_translate(location) %>">
+                 style="<%= get_translate(player.game, target_idx) %>">
             </div>
           <% end %>
 
