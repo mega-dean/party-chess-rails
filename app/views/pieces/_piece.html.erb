@@ -4,7 +4,7 @@ transform_style = get_translate(location)
 %>
 
 <% if piece.player.id == player&.id %>
-  <div id="piece_<%= piece.id %>"
+  <div id="piece-<%= piece.id %>"
        class="piece-container current-player"
        data-controller="move"
        data-move-id-value="<%= piece.id %>"
@@ -15,7 +15,7 @@ transform_style = get_translate(location)
     <%= image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece') %>
   </div>
 <% else %>
-  <div id="piece_<%= piece.id %>"
+  <div id="piece-<%= piece.id %>"
        class="piece-container"
        style="<%= transform_style %>">
     <%= image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece') %>

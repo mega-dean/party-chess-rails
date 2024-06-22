@@ -2,19 +2,17 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static values = {
-    moveGeneration: String,
+    moveGeneration: Object,
     waitTime: Number,
   }
 
   connect() {
     new Promise((resolve) => setTimeout(resolve, this.waitTimeValue)).then(() => {
-      // FIXME try using Object type
-      const parsed = JSON.parse(this.moveGenerationValue);
-      for (let [targetSquare, moves] of Object.entries(parsed)) {
-        // CLEANUP
-        let movedPieces = moves.bumped ?
-                          (moves.moving || []).concat(moves.bumped)
-                        : (moves.moving || []);
+      for (let [targetSquare, moves] of Object.entries(this.moveGenerationValue)) {
+        if (moves.captured) {
+          document.getElementById(`piece-${moves.captured}`)?.remove();
+        }
+        let movedPieces = (moves.moving || []).concat(moves.bumped || []);
         movedPieces.forEach((pieceId) => {
           this.movePieceTo(pieceId, targetSquare);
         });
@@ -22,11 +20,10 @@ export default class extends Controller {
     });
 
     [...document.getElementsByClassName('pending-move')].forEach((node) => node.remove());
-    // FIXME maybe also need to remove captured pieces here
   }
 
   movePieceTo(id, dest) {
-    let piece = document.getElementById(`piece_${id}`);
+    let piece = document.getElementById(`piece-${id}`);
     let relativeDestX = dest % 8;
     let relativeDestY = Math.floor((dest % 64) / 8);
 
