@@ -4,9 +4,7 @@ class Piece < ApplicationRecord
 
   KINDS = ['rook', 'queen', 'knight', 'bishop']
 
-  validates :kind, inclusion: {
-    in: KINDS
-  }
+  validates :kind, inclusion: { in: KINDS }
 
   def try_move(target_square)
     valid_target_squares = self.get_target_squares
@@ -44,7 +42,7 @@ class Piece < ApplicationRecord
   end
 
   def get_target_squares
-    current_location = game.idx_to_location(self.square)
+    current_location = game.square_to_location(self.square)
 
     target_moves = game.board_hash
     target_moves[[current_location[:board_x], current_location[:board_y]]] =
@@ -68,7 +66,7 @@ class Piece < ApplicationRecord
   private
 
   def horizontal_moves
-    location = game.idx_to_location(self.square)
+    location = game.square_to_location(self.square)
 
     get_moves(location[:y]) { |i| self.square - (8 * i) } +
       get_moves(7 - location[:y]) { |i| self.square + (8 * i) } +
@@ -77,7 +75,7 @@ class Piece < ApplicationRecord
   end
 
   def diagonal_moves
-    location = game.idx_to_location(self.square)
+    location = game.square_to_location(self.square)
 
     up_left_targets = [location[:x], location[:y]].min
     up_right_targets = [7 - location[:x], location[:y]].min
@@ -97,7 +95,7 @@ class Piece < ApplicationRecord
   end
 
   def knight_moves
-    current_location = game.idx_to_location(self.square)
+    current_location = game.square_to_location(self.square)
 
     # . . 0 . 1 . .
     # . 2 . . . 3 .

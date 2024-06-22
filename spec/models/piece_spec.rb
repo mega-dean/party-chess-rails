@@ -7,17 +7,21 @@ RSpec.describe Piece do
   end
 
   def has_move(piece, x, y)
-    !!piece.get_target_moves[[0, 0]].find do |location|
+    !!piece.get_target_squares[[0, 0]].find do |location|
       location[:x] == x && location[:y] == y
     end
   end
 
-  def assert_target_moves(piece, expected_moves)
-    target_moves = piece.get_target_moves[[0, 0]]
-    assert_equal(target_moves.length, expected_moves.length)
+  def expect_target_squares(piece, expected_moves)
+    target_squares = piece.get_target_squares[[0, 0]]
+    expect(expected_moves.length).to eq(target_squares.length)
 
     expected_moves.each do |x, y|
-      assert(!!target_moves.find { |location| location[:x] == x && location[:y] == y}, "#{x}, #{y}")
+      target_square = !!target_squares.find do |target_square|
+        target_square_location = @game.square_to_location(target_square)
+        target_square_location[:x] == x && target_square_location[:y] == y
+      end
+      expect(target_square).not_to be(nil)
     end
   end
 
@@ -26,12 +30,7 @@ RSpec.describe Piece do
       knight = @player.pieces.create!(kind: 'knight', square: 27)
 
       expect {
-        knight.try_move({
-          board_x: 0,
-          board_y: 0,
-          x: 2,
-          y: 1,
-        })
+        knight.try_move(10)
       }.to change { knight.moves.count }.by(1)
     end
 
@@ -39,22 +38,17 @@ RSpec.describe Piece do
       knight = @player.pieces.create!(kind: 'knight', square: 27)
 
       expect {
-        knight.try_move({
-          board_x: 0,
-          board_y: 0,
-          x: 2,
-          y: 2,
-        })
+        knight.try_move(11)
       }.not_to change { knight.moves.count }
     end
   end
 
-  describe "get_target_moves" do
+  describe "get_target_squares" do
     describe "knight" do
       it "includes all 8 moves when in the center of the board" do
         knight = @player.pieces.create!(kind: 'knight', square: 27)
 
-        assert_target_moves(knight, [
+        expect_target_squares(knight, [
           [2, 1],
           [4, 1],
           [1, 2],
@@ -69,7 +63,7 @@ RSpec.describe Piece do
       it "trims moves when near the edge of the board" do
         knight = @player.pieces.create!(kind: 'knight', square: 48)
 
-        assert_target_moves(knight, [
+        expect_target_squares(knight, [
           [1, 4],
           [2, 5],
           [2, 7],
@@ -77,7 +71,7 @@ RSpec.describe Piece do
 
         knight.update!(square: 14)
 
-        assert_target_moves(knight, [
+        expect_target_squares(knight, [
           [4, 0],
           [4, 2],
           [5, 3],
@@ -89,7 +83,7 @@ RSpec.describe Piece do
     specify "bishop" do
       bishop = @player.pieces.create!(kind: 'bishop', square: 11)
 
-      assert_target_moves(bishop, [
+      expect_target_squares(bishop, [
         # up left
         [2, 0],
         # up right
@@ -110,7 +104,7 @@ RSpec.describe Piece do
     specify "rook" do
       rook = @player.pieces.create!(kind: 'rook', square: 11)
 
-      assert_target_moves(rook, [
+      expect_target_squares(rook, [
         # up
         [3, 0],
         # left
@@ -135,7 +129,7 @@ RSpec.describe Piece do
     specify "queen" do
       queen = @player.pieces.create!(kind: 'queen', square: 11)
 
-      assert_target_moves(queen, [
+      expect_target_squares(queen, [
         # up
         [3, 0],
         # left

@@ -14,7 +14,7 @@ class Player < ApplicationRecord
     board_hash = self.game.board_hash
 
     Move.where(piece_id: self.pieces.select(:id), turn: self.game.current_turn).each do |move|
-      location = self.game.idx_to_location(move.target_square)
+      location = self.game.square_to_location(move.target_square)
       board_hash[[location[:board_x], location[:board_y]]] << move
     end
 

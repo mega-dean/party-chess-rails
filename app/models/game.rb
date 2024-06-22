@@ -29,7 +29,7 @@ class Game < ApplicationRecord
 
     players.includes(:pieces).each do |player|
       player.pieces.each do |piece|
-        location = self.idx_to_location(piece.square)
+        location = self.square_to_location(piece.square)
         h[[location[:board_x], location[:board_y]]] << piece
       end
     end
@@ -57,7 +57,7 @@ class Game < ApplicationRecord
   # |                 |                 |
   # |                 |                 |
   # + - - - - - - - - + - - - - - - - - +
-  def location_to_idx(location)
+  def location_to_square(location)
     squares_per_board_row = self.boards_wide * 64
 
     (location[:board_y] * squares_per_board_row) +
@@ -66,19 +66,19 @@ class Game < ApplicationRecord
       location[:x]
   end
 
-  def idx_to_location(idx)
+  def square_to_location(square)
     squares_per_board_row = self.boards_wide * 64
 
-    board_y = idx / squares_per_board_row
-    idx %= squares_per_board_row
+    board_y = square / squares_per_board_row
+    square %= squares_per_board_row
 
-    board_x = idx / 64
-    idx %= 64
+    board_x = square / 64
+    square %= 64
 
-    y = idx / 8
-    idx %= 8
+    y = square / 8
+    square %= 8
 
-    x = idx
+    x = square
 
     {
       board_x: board_x,

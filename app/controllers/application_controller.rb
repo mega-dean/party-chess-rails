@@ -8,8 +8,8 @@ class ApplicationController < ActionController::Base
   end
 
   helper_method :get_translate
-  def get_translate(game, target_idx)
-    location = game.idx_to_location(target_idx)
+  def get_translate(game, target_square)
+    location = game.square_to_location(target_square)
 
     square_rem = 4
     padding_rem = 0.6
@@ -24,8 +24,8 @@ class ApplicationController < ActionController::Base
     square_rem = 4
     padding_rem = 0.6
 
-    start_location = move.piece.player.game.idx_to_location(move.piece.square)
-    target_location = move.piece.player.game.idx_to_location(move.target_square)
+    start_location = move.piece.player.game.square_to_location(move.piece.square)
+    target_location = move.piece.player.game.square_to_location(move.target_square)
 
     # TODO this won't work for adjacent-board moves
     start_x = (square_rem * start_location[:x]) + (square_rem / 2) + padding_rem

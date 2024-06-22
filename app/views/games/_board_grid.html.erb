@@ -17,7 +17,7 @@ selected_piece ||= nil
             <% 8.times do |x| %>
               <% span_class = "#{y%2 == x%2 ? 'light' : 'dark'}-#{has_piece_on_board ? 'revealed' : 'obscured'}" %>
               <span class="square <%= span_class %>">
-                <%= player.game.location_to_idx({board_x: board_x, board_y: board_y, x: x, y: y}) %>
+                <%= player.game.location_to_square({board_x: board_x, board_y: board_y, x: x, y: y}) %>
               </span>
             <% end %>
           <% end %>
@@ -27,13 +27,13 @@ selected_piece ||= nil
             <% end %>
           <% end %>
 
-          <% target_moves[[board_x, board_y]].each do |target_idx| %>
+          <% target_moves[[board_x, board_y]].each do |target_square| %>
             <div class="move-target"
                  data-controller="move"
-                 data-move-target-idx-value="<%= target_idx %>"
+                 data-move-target-square-value="<%= target_square %>"
                  data-move-selected-piece-id-value="<%= selected_piece&.id %>"
                  data-action="click->move#selectTarget"
-                 style="<%= get_translate(player.game, target_idx) %>">
+                 style="<%= get_translate(player.game, target_square) %>">
             </div>
           <% end %>
 
