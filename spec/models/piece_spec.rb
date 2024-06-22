@@ -21,6 +21,34 @@ RSpec.describe Piece do
     end
   end
 
+  describe "try_move" do
+    it "creates a move when target location is valid" do
+      knight = @player.pieces.create!(kind: 'knight', square: 27)
+
+      expect {
+        knight.try_move({
+          board_x: 0,
+          board_y: 0,
+          x: 2,
+          y: 1,
+        })
+      }.to change { knight.moves.count }.by(1)
+    end
+
+    it "does nothing when target location is invalid" do
+      knight = @player.pieces.create!(kind: 'knight', square: 27)
+
+      expect {
+        knight.try_move({
+          board_x: 0,
+          board_y: 0,
+          x: 2,
+          y: 2,
+        })
+      }.not_to change { knight.moves.count }
+    end
+  end
+
   describe "get_target_moves" do
     describe "knight" do
       it "includes all 8 moves when in the center of the board" do

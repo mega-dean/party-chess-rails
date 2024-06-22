@@ -8,20 +8,24 @@ class Piece < ApplicationRecord
     in: KINDS
   }
 
-  def make_move(location)
-    target_square = game.location_to_idx(location)
+  def try_move(location)
+    valid_target_locations = self.get_target_moves
 
-    move = self.moves.find_by(turn: game.current_turn)
+    if valid_target_locations.any? {|_, targets| targets.include?(location) }
+      target_square = game.location_to_idx(location)
 
-    if move
-      move.update!(target_square: target_square)
-    else
-      self.moves.create!(target_square: target_square, turn: game.current_turn)
+      move = self.moves.find_by(turn: game.current_turn)
+
+      if move
+        move.update!(target_square: target_square)
+      else
+        self.moves.create!(target_square: target_square, turn: game.current_turn)
+      end
+
+      broadcast_replace_to "game_board", target: 'board-grid', partial: "games/board_grid", locals: {
+        player: self.player,
+      }
     end
-
-    broadcast_replace_to "game_board", target: 'board-grid', partial: "games/board_grid", locals: {
-      player: self.player,
-    }
   end
 
   # Not calling this `.select` because that method already exists on Models.

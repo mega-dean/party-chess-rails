@@ -7,7 +7,7 @@ class MovesController < ApplicationController
       x: params[:target_x],
       y: params[:target_y],
     }
-    piece.make_move(target_location)
+    piece.try_move(target_location)
     head :ok
   end
 end

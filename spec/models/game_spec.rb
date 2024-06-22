@@ -132,7 +132,7 @@ RSpec.describe Game do
     describe "rook movement" do
       it "steps through each square for linear pieces" do
         rook = @player.pieces.create!(kind: 'rook', square: 73)
-        rook.make_move({
+        rook.try_move({
           board_x: 1,
           board_y: 0,
           x: 5,
@@ -156,11 +156,11 @@ RSpec.describe Game do
     describe "knight movement" do
       it "moves knights in one step" do
         knight = @player.pieces.create!(kind: 'knight', square: 20)
-        knight.make_move({
+        knight.try_move({
           board_x: 0,
           board_y: 0,
-          x: 35,
-          y: 0,
+          x: 3,
+          y: 4,
         })
 
         expect_moves([
@@ -175,14 +175,14 @@ RSpec.describe Game do
         rook = @player.pieces.create!(kind: 'rook', square: 19)
         bishop = @player.pieces.create!(kind: 'bishop', square: 21)
 
-        rook.make_move({
+        rook.try_move({
           board_x: 0,
           board_y: 0,
           x: 3,
           y: 6,
         })
 
-        bishop.make_move({
+        bishop.try_move({
           board_x: 0,
           board_y: 0,
           x: 1,
@@ -200,8 +200,8 @@ RSpec.describe Game do
         rook = @player.pieces.create!(kind: 'rook', square: 19)
         queen = @player.pieces.create!(kind: 'queen', square: 22)
 
-        rook.make_move(@game.idx_to_location(23))
-        queen.make_move(@game.idx_to_location(17))
+        rook.try_move(@game.idx_to_location(23))
+        queen.try_move(@game.idx_to_location(17))
 
         expect_moves([
           { 20 => { moving: [rook.id] }, 21 => { moving: [queen.id] }},
@@ -217,8 +217,8 @@ RSpec.describe Game do
         rook = @player.pieces.create!(kind: 'rook', square: 19)
         queen = @player.pieces.create!(kind: 'queen', square: 22)
 
-        rook.make_move(@game.idx_to_location(21))
-        queen.make_move(@game.idx_to_location(21))
+        rook.try_move(@game.idx_to_location(21))
+        queen.try_move(@game.idx_to_location(21))
 
         expect_moves([
           { 20 => { moving: [rook.id] }, 21 => { moving: [queen.id] }},
@@ -231,7 +231,7 @@ RSpec.describe Game do
         rook = @player.pieces.create!(kind: 'rook', square: 19)
         queen = @player.pieces.create!(kind: 'queen', square: 22)
 
-        rook.make_move(@game.idx_to_location(23))
+        rook.try_move(@game.idx_to_location(23))
 
         expect_moves([
           { 20 => { moving: [rook.id] }, 22 => { initial: queen.id }},
@@ -246,8 +246,8 @@ RSpec.describe Game do
         bishop = @player.pieces.create!(kind: 'bishop', square: 26)
         queen = @player.pieces.create!(kind: 'queen', square: 22)
 
-        rook.make_move(@game.idx_to_location(23))
-        bishop.make_move(@game.idx_to_location(19))
+        rook.try_move(@game.idx_to_location(23))
+        bishop.try_move(@game.idx_to_location(19))
 
         expect_moves([
           { 20 => { moving: [rook.id] }, 19 => { moving: [bishop.id] }, 22 => { initial: queen.id }},
@@ -273,7 +273,7 @@ RSpec.describe Game do
         other_player = @game.players.create!(is_black: false)
         queen = other_player.pieces.create!(kind: 'queen', square: 22)
 
-        rook.make_move(@game.idx_to_location(22))
+        rook.try_move(@game.idx_to_location(22))
 
         move_steps = @game.get_move_steps[[0, 0]]
 
@@ -297,8 +297,8 @@ RSpec.describe Game do
         other_player = @game.players.create!(is_black: false)
         queen = other_player.pieces.create!(kind: 'queen', square: 22)
 
-        rook.make_move(@game.idx_to_location(22))
-        bishop.make_move(@game.idx_to_location(22))
+        rook.try_move(@game.idx_to_location(22))
+        bishop.try_move(@game.idx_to_location(22))
 
         move_steps = @game.get_move_steps[[0, 0]]
 
@@ -326,7 +326,7 @@ RSpec.describe Game do
         queen = other_player.pieces.create!(kind: 'queen', square: 22)
         bishop = other_player.pieces.create!(kind: 'bishop', square: 20)
 
-        rook.make_move(@game.idx_to_location(22))
+        rook.try_move(@game.idx_to_location(22))
 
         expect_moves([
           { 20 => { moving: [rook.id], initial: bishop.id }, 22 => { initial: queen.id }},
