@@ -12,8 +12,8 @@ RSpec.describe Piece do
     end
   end
 
-  def expect_target_squares(piece, expected_moves)
-    target_squares = piece.get_target_squares[[0, 0]]
+  def expect_target_squares(piece, expected_moves, board: [0, 0])
+    target_squares = piece.get_target_squares[board]
     expect(expected_moves.length).to eq(target_squares.length)
 
     expected_moves.each do |x, y|
@@ -78,6 +78,31 @@ RSpec.describe Piece do
           [7, 3],
         ])
       end
+
+      it "includes moves to adjacent boards" do
+        knight = @player.pieces.create!(kind: 'knight', square: 48)
+
+        expect_target_squares(knight, [
+          [0, 1],
+        ], board: [0, 1])
+
+        knight.update!(square: 63)
+
+        expect_target_squares(knight, [
+          [0, 5],
+          [1, 6],
+        ], board: [1, 0])
+
+        expect_target_squares(knight, [
+          [0, 1],
+          [1, 0],
+        ], board: [1, 1])
+
+        expect_target_squares(knight, [
+          [6, 0],
+          [1, 7],
+        ], board: [0, 1])
+      end
     end
 
     specify "bishop" do
@@ -98,8 +123,11 @@ RSpec.describe Piece do
         [6, 4],
         [7, 5],
       ])
-    end
 
+      expect_target_squares(bishop, [
+        [0, 6],
+      ], board: [1, 0])
+    end
 
     specify "rook" do
       rook = @player.pieces.create!(kind: 'rook', square: 11)
@@ -124,44 +152,68 @@ RSpec.describe Piece do
         [3, 6],
         [3, 7],
       ])
+
+      expect_target_squares(rook, [
+        [0, 1],
+      ], board: [1, 0])
+
+      expect_target_squares(rook, [
+        [3, 0],
+      ], board: [0, 1])
     end
 
     specify "queen" do
-      queen = @player.pieces.create!(kind: 'queen', square: 11)
+      queen = @player.pieces.create!(kind: 'queen', square: 45)
 
       expect_target_squares(queen, [
         # up
-        [3, 0],
-        # left
-        [2, 1],
-        [1, 1],
-        [0, 1],
-        # right
-        [4, 1],
-        [5, 1],
-        [6, 1],
-        [7, 1],
-        # down
-        [3, 2],
-        [3, 3],
-        [3, 4],
-        [3, 5],
-        [3, 6],
-        [3, 7],
-        # up left
-        [2, 0],
-        # up right
-        [4, 0],
-        # down left
-        [2, 2],
-        [1, 3],
-        [0, 4],
-        # down right
-        [4, 2],
+        [5, 4],
         [5, 3],
-        [6, 4],
+        [5, 2],
+        [5, 1],
+        [5, 0],
+        # left
+        [4, 5],
+        [3, 5],
+        [2, 5],
+        [1, 5],
+        [0, 5],
+        # right
+        [6, 5],
         [7, 5],
+        # down
+        [5, 6],
+        [5, 7],
+        # up left
+        [4, 4],
+        [3, 3],
+        [2, 2],
+        [1, 1],
+        [0, 0],
+        # up right
+        [6, 4],
+        [7, 3],
+        # down left
+        [4, 6],
+        [3, 7],
+        # down right
+        [6, 6],
+        [7, 7],
       ])
+
+      expect_target_squares(queen, [
+        [0, 2],
+        [0, 5],
+      ], board: [1, 0])
+
+      expect_target_squares(queen, [
+        [0, 0],
+      ], board: [1, 1])
+
+      expect_target_squares(queen, [
+        [2, 0],
+        [5, 0],
+      ], board: [0, 1])
     end
   end
 end

@@ -38,7 +38,7 @@ selected_piece ||= nil
           <% end %>
 
           <% player.pending_moves[[board_x, board_y]].each do |move| %>
-            <div class="pending-move" style="<%= get_pending_move_line(move) %>"></div>
+            <div class="pending-move" style="<%= get_pending_move_line(move, board_x, board_y) %>"></div>
           <% end %>
         </div>
       <% end %>

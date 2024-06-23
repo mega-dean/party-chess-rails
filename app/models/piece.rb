@@ -45,17 +45,24 @@ class Piece < ApplicationRecord
     current_location = game.square_to_location(self.square)
 
     target_moves = game.board_hash
-    target_moves[[current_location[:board_x], current_location[:board_y]]] =
-      {
-        'rook' => horizontal_moves,
-        'bishop' => diagonal_moves,
-        'queen' => diagonal_moves + horizontal_moves,
-        'knight' => knight_moves,
-      }[self.kind] || raise("unreachable: unknown kind #{self.kind}")
+
+    if self.kind == 'knight'
+      set_knight_moves(target_moves, current_location)
+    elsif self.kind == 'bishop'
+      target_moves[[current_location[:board_x], current_location[:board_y]]] = diagonal_moves
+      set_diagonal_moves_to_adjacent_boards(target_moves, current_location)
+    elsif self.kind == 'rook'
+      target_moves[[current_location[:board_x], current_location[:board_y]]] = horizontal_moves
+      set_horizontal_moves_to_adjacent_boards(target_moves, current_location)
+    elsif self.kind == 'queen'
+      target_moves[[current_location[:board_x], current_location[:board_y]]] = diagonal_moves + horizontal_moves
+      set_horizontal_moves_to_adjacent_boards(target_moves, current_location)
+      set_diagonal_moves_to_adjacent_boards(target_moves, current_location)
+    else
+      raise("unreachable: unknown kind #{self.kind}")
+    end
 
     target_moves
-
-    # TODO targets to adjacent boards
   end
 
   # Optional game arg in case game is already in memory.
@@ -64,6 +71,223 @@ class Piece < ApplicationRecord
   end
 
   private
+
+  def set_knight_moves(target_moves, current_location)
+    x = current_location[:x]
+    y = current_location[:y]
+    board_x = current_location[:board_x]
+    board_y = current_location[:board_y]
+
+    get_board_x = ->(h) do
+      if x < (h[:left] || 0)
+        board_x - 1
+      elsif x > (7 - (h[:right] || 0))
+        board_x + 1
+      else
+        board_x
+      end
+    end
+
+    get_board_y = ->(h) do
+      if y < (h[:up] || 0)
+        board_y - 1
+      elsif y > (7 - (h[:down] || 0))
+        board_y + 1
+      else
+        board_y
+      end
+    end
+
+    get_x = ->(h) do
+      if x < (h[:left] || 0)
+        x + 8 - h[:left]
+      elsif x > (7 - (h[:right] || 0))
+        x + h[:right] - 8
+      else
+        dx = h[:right] || -h[:left]
+        x + dx
+      end
+    end
+
+    get_y = ->(h) do
+      if y < (h[:up] || 0)
+        y + 8 - h[:up]
+      elsif y > (7 - (h[:down] || 0))
+        y + h[:down] - 8
+      else
+        dy = h[:down] || -h[:up]
+        y + dy
+      end
+    end
+
+    new_moves = [
+      { left: 1, up: 2 },
+      { left: 2, up: 1 },
+      { left: 1, down: 2 },
+      { left: 2, down: 1 },
+      { right: 1, up: 2 },
+      { right: 2, up: 1 },
+      { right: 1, down: 2 },
+      { right: 2, down: 1 },
+    ].map do |dist|
+      {
+        board_x: get_board_x.(dist),
+        board_y: get_board_y.(dist),
+        x: get_x.(dist),
+        y: get_y.(dist),
+      }
+    end
+
+    add_moves(target_moves, new_moves)
+  end
+
+  def set_diagonal_moves_to_adjacent_boards(target_moves, current_location)
+    x = current_location[:x]
+    y = current_location[:y]
+
+    up_left_target, down_right_target = if x - y == 0
+      [
+        {
+          board_x: current_location[:board_x] - 1,
+          board_y: current_location[:board_y] - 1,
+          x: 7,
+          y: 7,
+        },
+        {
+          board_x: current_location[:board_x] + 1,
+          board_y: current_location[:board_y] + 1,
+          x: 0,
+          y: 0,
+        },
+      ]
+    elsif x - y < 0
+      [
+        {
+          board_x: current_location[:board_x] - 1,
+          board_y: current_location[:board_y],
+          x: 7,
+          y: y - x - 1,
+        },
+        {
+          board_x: current_location[:board_x],
+          board_y: current_location[:board_y] + 1,
+          x: x - y + 8,
+          y: 0,
+        },
+      ]
+    else
+      [
+        {
+          board_x: current_location[:board_x],
+          board_y: current_location[:board_y] - 1,
+          x: x - y - 1,
+          y: 7,
+        },
+        {
+          board_x: current_location[:board_x] + 1,
+          board_y: current_location[:board_y],
+          x: 0,
+          y: y - x + 8,
+        },
+      ]
+    end
+
+    down_left_target, up_right_target = if x + y == 7
+      [
+        {
+          board_x: current_location[:board_x] - 1,
+          board_y: current_location[:board_y] + 1,
+          x: 7,
+          y: 0,
+        },
+        {
+          board_x: current_location[:board_x] + 1,
+          board_y: current_location[:board_y] - 1,
+          x: 0,
+          y: 7,
+        },
+      ]
+    elsif x + y < 7
+      [
+        {
+          board_x: current_location[:board_x] - 1,
+          board_y: current_location[:board_y],
+          x: 7,
+          y: x + y + 1,
+        },
+        {
+          board_x: current_location[:board_x],
+          board_y: current_location[:board_y] - 1,
+          x: x + y + 1,
+          y: 7,
+        },
+      ]
+    else
+      [
+        {
+          board_x: current_location[:board_x],
+          board_y: current_location[:board_y] + 1,
+          x: x + y - 8,
+          y: 0,
+        },
+        {
+          board_x: current_location[:board_x] + 1,
+          board_y: current_location[:board_y],
+          x: 0,
+          y: x + y - 8,
+        },
+      ]
+    end
+
+    add_moves(target_moves, [up_left_target, up_right_target, down_left_target, down_right_target])
+  end
+
+  def set_horizontal_moves_to_adjacent_boards(target_moves, current_location)
+    up = {
+      board_x: current_location[:board_x],
+      board_y: current_location[:board_y] - 1,
+      x: current_location[:x],
+      y: 7,
+    }
+    down = {
+      board_x: current_location[:board_x],
+      board_y: current_location[:board_y] + 1,
+      x: current_location[:x],
+      y: 0,
+    }
+    left = {
+      board_x: current_location[:board_x] - 1,
+      board_y: current_location[:board_y],
+      x: 7,
+      y: current_location[:y],
+    }
+    right = {
+      board_x: current_location[:board_x] + 1,
+      board_y: current_location[:board_y],
+      x: 0,
+      y: current_location[:y],
+    }
+
+    add_moves(target_moves, [up, down, left, right])
+  end
+
+  def add_moves(target_moves, new_moves)
+    new_moves.each do |target_location|
+      board_x = target_location[:board_x]
+      board_y = target_location[:board_y]
+      if 0 <= board_x && board_x < game.boards_wide &&
+          0 <= board_y && board_y < game.boards_tall
+        target_moves[[board_x, board_y]] ||= []
+        target_moves[[board_x, board_y]] <<
+          game.location_to_square({
+            board_x: board_x,
+            board_y: board_y,
+            x: target_location[:x],
+            y: target_location[:y],
+          })
+      end
+    end
+  end
 
   def horizontal_moves
     location = game.square_to_location(self.square)

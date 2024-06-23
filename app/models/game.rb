@@ -196,11 +196,7 @@ class Game < ApplicationRecord
     self.update!(current_turn: self.current_turn + 1)
 
     steps_by_board.each do |_, steps|
-      final = steps.last
-
-      final.each do |target_square, moves|
-        # TODO won't work for moves to adjacent boards (steps have to be 9 long, to allow for 8 moves + 1 bump)
-
+      steps.last.each do |target_square, moves|
         if piece_id = moves[:moved]
           Piece.find(piece_id).update!(square: target_square)
         end

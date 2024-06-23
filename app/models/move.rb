@@ -1,6 +1,5 @@
 class Move < ApplicationRecord
-  # TODO Will need to change this to 9 to support moves to adjacent boards.
-  STEPS_PER_TURN = 8
+  STEPS_PER_TURN = 9
 
   belongs_to :piece
 
