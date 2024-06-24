@@ -1,74 +1,69 @@
 class Move < ApplicationRecord
-  STEPS_PER_TURN = 9
+  INTERMEDIATE_SQUARES_PER_TURN = 9
 
   belongs_to :piece
 
-  def to_steps
-    steps = self.send({
-      'rook' => :get_rook_moves,
-      'knight' => :get_knight_moves,
-      'bishop' => :get_bishop_moves,
-      'queen' => :get_queen_moves,
+  def get_intermediate_squares
+    intermediate_squares = self.send({
+      'rook' => :get_rook_intermediate_squares,
+      'knight' => :get_knight_intermediate_squares,
+      'bishop' => :get_bishop_intermediate_squares,
+      'queen' => :get_queen_intermediate_squares,
     }[self.piece.kind])
 
-    STEPS_PER_TURN.times do |idx|
-      if !steps[idx]
-        steps[idx] = steps[idx - 1]
+    INTERMEDIATE_SQUARES_PER_TURN.times do |idx|
+      if !intermediate_squares[idx]
+        intermediate_squares[idx] = intermediate_squares[idx - 1]
       end
     end
 
-    steps
+    intermediate_squares
   end
 
-  def get_rook_moves
+  private
+
+  def get_rook_intermediate_squares
     diff = self.target_square - self.piece.square
 
+    # FIXME These conditions will only work for moves onto the same board
     if self.target_square < self.piece.square
       if -8 < diff && diff < 0
-        # left
-        get_steps(-1)
+        get_linear_intermediate_squares(:left)
       else
-        # up
-        get_steps(-8)
+        get_linear_intermediate_squares(:up)
       end
     else
       if 0 < diff && diff < 8
-        # right
-        get_steps(1)
+        get_linear_intermediate_squares(:right)
       else
-        # down
-        get_steps(8)
+        get_linear_intermediate_squares(:down)
       end
     end
   end
 
-  def get_bishop_moves
+  def get_bishop_intermediate_squares
     diff = self.target_square - self.piece.square
 
     if self.target_square < self.piece.square
       if diff % 9 == 0
-        # up left
-        get_steps(-9)
+        get_linear_intermediate_squares(:up_left)
       else
-        # up right
-        get_steps(-7)
+        get_linear_intermediate_squares(:up_right)
       end
     else
       if diff % 9 == 0
-        # down right
-        get_steps(9)
+        get_linear_intermediate_squares(:down_right)
       else
-        # down left
-        get_steps(7)
+        get_linear_intermediate_squares(:down_left)
       end
     end
   end
 
-  def get_knight_moves
+  def get_knight_intermediate_squares
     [self.target_square]
   end
 
-  def get_queen_moves
+  def get_queen_intermediate_squares
     diff = self.target_square - self.piece.square
 
     # Need to check this specifically because eg. moving left 7 squares and moving up-right 1 square
@@ -77,45 +72,84 @@ class Move < ApplicationRecord
 
     if self.target_square < self.piece.square
       if moving_horizontally
-        # left
-        get_steps(-1)
+        get_linear_intermediate_squares(:left)
       elsif diff % 9 == 0
-        # up left
-        get_steps(-9)
+        get_linear_intermediate_squares(:up_left)
       elsif diff % 8 == 0
-        # up
-        get_steps(-8)
+        get_linear_intermediate_squares(:up)
       else
-        # up right
-        get_steps(-7)
+        get_linear_intermediate_squares(:up_right)
       end
     else
       if moving_horizontally
-        # right
-        get_steps(1)
+        get_linear_intermediate_squares(:right)
       elsif diff % 9 == 0
-        # down right
-        get_steps(9)
+        get_linear_intermediate_squares(:down_right)
       elsif diff % 8 == 0
-        # down
-        get_steps(8)
+        get_linear_intermediate_squares(:down)
       else
-        # down left
-        get_steps(7)
+        get_linear_intermediate_squares(:down_left)
       end
     end
   end
 
-  def get_steps(step_size)
-    current_square = self.piece.square
-    steps = []
+    start_location = self.piece.player.game.square_to_location(square)
+    target_location = self.piece.player.game.square_to_location(self.target_square)
 
-    while current_square != self.target_square
-      next_square = current_square + step_size
-      steps << next_square
-      current_square = next_square
+    start_location[:board_x] == target_location[:board_x] &&
+      start_location[:board_y] == target_location[:board_y]
+  end
+
+  def get_linear_intermediate_squares(direction)
+    current_square = self.piece.square
+    intermediate_squares = []
+
+    delta = {
+      up_left: -9,
+      up: -8,
+      up_right: -7,
+      left: -1,
+      right: 1,
+      down_left: 7,
+      down: 8,
+      down_right: 9,
+    }[direction]
+
+    if on_same_board(self.piece.square)
+      while current_square != self.target_square
+        next_square = current_square + delta
+        intermediate_squares << next_square
+        current_square = next_square
+      end
+    else
+      current_location = self.piece.player.game.square_to_location(current_square)
+
+      on_edge_of_board = -> (location) do
+        x = location[:x]
+        y = location[:y]
+
+        {
+          up: y == 0,
+          down: y == 7,
+          left: x == 0,
+          right: x == 7,
+          up_left: x == 0 || y == 0,
+          up_right: x == 7 || y == 0,
+          down_left: x == 0 || y == 7,
+          down_right: x == 7 || y == 7,
+        }[direction]
+      end
+
+      while !on_edge_of_board.(current_location)
+        next_square = current_square + delta
+        intermediate_squares << next_square
+        current_square = next_square
+        current_location = self.piece.player.game.square_to_location(current_square)
+      end
+
+      intermediate_squares << self.target_square
     end
 
-    steps
+    intermediate_squares
   end
 end

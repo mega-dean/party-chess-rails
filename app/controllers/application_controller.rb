@@ -13,6 +13,7 @@ class ApplicationController < ActionController::Base
 
     square_rem = 4
     padding_rem = 0.6
+    # FIXME consider board_x/y to handle adjacent-board moves
     x_rem = (square_rem * location[:x]) + padding_rem
     y_rem = (square_rem * location[:y]) + padding_rem
 

@@ -91,94 +91,122 @@ class Game < ApplicationRecord
   def get_move_steps
     steps = {}
     pieces_by_board = self.pieces_by_board
+    all_pieces = Game.includes(players: { pieces: :moves }).find(self.id).players.flat_map(&:pieces)
 
-    pieces_by_board.each do |(board_x, board_y), pieces|
-      steps_by_piece = {}
+    cache = {}
 
-      moves_by_piece_id = {}
-      moves = Move.includes(:piece).where(turn: self.current_turn, piece_id: pieces.map(&:id)).each do |move|
-        moves_by_piece_id[move.piece.id] = move
+    all_pieces.each do |piece|
+      move = piece.get_current_move(self)
+      intermediate_squares = if move
+        move.get_intermediate_squares
+      else
+        [piece.square] * Move::INTERMEDIATE_SQUARES_PER_TURN
       end
 
-      pieces_by_id = {}
-      pieces.each do |piece|
-        pieces_by_id[piece.id] = piece
-        if move = moves_by_piece_id[piece.id]
-          steps_by_piece[piece] = move.to_steps
-        else
-          steps_by_piece[piece] = [piece.square] * Move::STEPS_PER_TURN
-        end
-      end
+      cache[piece.id] = {
+        piece: piece,
+        move: move,
+        intermediate_squares: intermediate_squares,
+      }
+    end
 
-      bumped_pieces = Set.new
-      captured_pieces = Set.new
+    bumped_pieces = Set.new
+    captured_pieces = Set.new
 
-      steps[[board_x, board_y]] = Move::STEPS_PER_TURN.times.map do |idx|
-        h = {}
+    Move::INTERMEDIATE_SQUARES_PER_TURN.times.map do |idx|
+      # FIXME Don't use pieces_by_board here - select pieces where intermediate_squares[idx] is on board_x/y
+      pieces_by_board.each do |(board_x, board_y), pieces|
+        steps[[board_x, board_y]] ||= []
+        step = {}
 
-        bumped, non_bumped = steps_by_piece.partition { |piece, _| bumped_pieces.include?(piece.id) }
-
-        # Handling all bumped pieces first makes it easier to check for chained bumps.
-        bumped.each do |piece, steps|
-          h[piece.square] ||= {}
-          h[piece.square][:bumped] = piece.id
-        end
-
-        non_bumped.each do |piece, steps|
-          h[steps[idx]] ||= {}
+        get_stage = -> (piece) do
+          stage = {}
+          intermediate_squares = cache[piece.id][:intermediate_squares]
+          current_square = intermediate_squares[idx]
+          previous_square = idx > 0 && intermediate_squares[idx - 1]
+          stage[:square] = current_square
 
           if captured_pieces.include?(piece.id)
-            h[steps[idx]][:captured] = piece.id
+            stage[:kind] = :captured
           else
-            if piece.square == steps[idx]
-              h[steps[idx]][:initial] = piece.id
-            elsif idx > 0 && steps[idx] == steps[idx - 1]
-              if h[steps[idx]][:bumped]
-                h[piece.square] ||= {}
-                h[piece.square][:bumped] = piece.id
-              else
-                h[steps[idx]][:moved] = piece.id
-              end
+            if piece.square == current_square
+              stage[:kind] = :initial
+            elsif idx > 0 && current_square == previous_square
+              stage[:kind] = :moved
             else
-              h[steps[idx]][:moving] ||= []
-              h[steps[idx]][:moving] << piece.id
+              stage[:is_array] = true
+              stage[:kind] = :moving
             end
           end
+
+          stage
         end
 
-        h.each do |square, moves|
-          bump_moving_pieces = if moves[:moving]
-            if moves[:moving].length > 1
-              # Many pieces arrived at the square at the same time.
-              true
-            elsif moves[:moving].length == 1
-              if moves[:moved]
-                # Another piece already arrived at this square first.
-                true
-              elsif moves[:initial]
-                moving_piece = pieces_by_id[moves[:moving].only!]
-                other_piece = pieces_by_id[moves[:initial]]
+        pieces.each do |piece|
+          current_square = cache[piece.id][:intermediate_squares][idx]
 
-                if other_piece.player.is_black == moving_piece.player.is_black
-                  # Another piece was here and didn't move this turn.
+          piece_stage = if bumped_pieces.include?(piece.id)
+            {
+              kind: :bumped,
+              square: piece.square,
+            }
+          else
+            get_stage.(piece)
+          end
+          step[piece_stage[:square]] ||= {}
+
+          if piece_stage[:is_array]
+            step[piece_stage[:square]][piece_stage[:kind]] ||= []
+            step[piece_stage[:square]][piece_stage[:kind]] << piece.id
+          else
+            step[piece_stage[:square]][piece_stage[:kind]] = piece.id
+          end
+
+          step.each do |square, piece_steps|
+            bump_moving_pieces = if piece_steps[:moving]
+              if piece_steps[:moving].length > 1
+                # Many pieces arrived at the square at the same time.
+                true
+              elsif piece_steps[:moving].length == 1
+                if piece_steps[:moved]
+                  # Another piece already arrived at this square first.
                   true
-                else
-                  captured_pieces.add(other_piece.id)
-                  false
+                elsif piece_steps[:initial]
+                  moving_piece = cache[piece_steps[:moving].only!][:piece]
+                  other_piece = cache[piece_steps[:initial]][:piece]
+
+                  if other_piece.player.is_black == moving_piece.player.is_black
+                    # Another piece was here and didn't move this turn.
+                    true
+                  else
+                    captured_pieces.add(other_piece.id)
+                    false
+                  end
                 end
               end
             end
-          end
 
-          if bump_moving_pieces
-            bumped_pieces.merge(moves[:moving])
+            chain_bump = -> (piece_id) {
+              chained_bump_square = cache[piece_id][:piece].square
+              if chained_bump_piece_id = step[chained_bump_square] && step[chained_bump_square][:moved]
+                bumped_pieces.add(chained_bump_piece_id)
+                chain_bump.(chained_bump_piece_id)
+              end
+            }
+
+            if bump_moving_pieces
+              bumped_pieces.merge(piece_steps[:moving])
+              piece_steps[:moving].each do |bumped_piece_id|
+                chain_bump.(bumped_piece_id)
+              end
+            end
           end
         end
 
-        h
-      end
+        steps[[board_x, board_y]][idx] = step
 
-      Piece.where(id: captured_pieces).destroy_all
+        Piece.where(id: captured_pieces).destroy_all
+      end
     end
 
     steps
@@ -207,7 +235,7 @@ class Game < ApplicationRecord
   def broadcast_move_steps(steps_by_board)
     self.players.each do |player|
       data = steps_by_board.select do |(board_x, board_y), _steps|
-        pieces_by_board[[board_x, board_y]].any? do |piece|
+        self.pieces_by_board[[board_x, board_y]].any? do |piece|
           piece.player_id == player.id
         end
       end

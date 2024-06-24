@@ -104,14 +104,27 @@ RSpec.describe Game do
       @player = @game.players.create!(is_black: true)
     end
 
+    def sort_values(h)
+      h.each do |k, sub_h|
+        sub_h.each do |sub_k, v|
+          if v.is_a?(Array)
+            sub_h[sub_k] = v.sort
+          end
+        end
+      end
+    end
+
     def expect_moves(expected, move_steps = nil)
       move_steps ||= @game.get_move_steps[[0, 0]]
 
       expected.each.with_index do |step, idx|
-        expect(move_steps[idx]).to eq(step)
+        sorted_move_step = sort_values(move_steps[idx])
+        sorted_step = sort_values(step)
+
+        expect(sorted_move_step).to eq(sorted_step)
       end
 
-      remaining_steps = Move::STEPS_PER_TURN - expected.length
+      remaining_steps = Move::INTERMEDIATE_SQUARES_PER_TURN - expected.length
       final_step = expected.last
 
       remaining_steps.times do |idx|
@@ -172,8 +185,8 @@ RSpec.describe Game do
 
     describe "bumped pieces" do
       it "bumps two pieces that have moved to the same square on the same step" do
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
         bishop = @player.pieces.create!(kind: 'bishop', square: 21)
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
 
         rook.try_move(@game.location_to_square({
           board_x: 0,
@@ -197,8 +210,8 @@ RSpec.describe Game do
       end
 
       it "does not bump pieces that move past each other" do
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
         queen = @player.pieces.create!(kind: 'queen', square: 22)
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
 
         rook.try_move(23)
         queen.try_move(17)
@@ -214,8 +227,8 @@ RSpec.describe Game do
       end
 
       it "bumps a piece that arrives to a square second" do
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
         queen = @player.pieces.create!(kind: 'queen', square: 22)
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
 
         rook.try_move(21)
         queen.try_move(21)
@@ -228,8 +241,8 @@ RSpec.describe Game do
       end
 
       it "bumps a piece when the other piece hasn't moved" do
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
         queen = @player.pieces.create!(kind: 'queen', square: 22)
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
 
         rook.try_move(23)
 
@@ -242,18 +255,49 @@ RSpec.describe Game do
       end
 
       it "chains bumps" do
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
-        bishop = @player.pieces.create!(kind: 'bishop', square: 26)
         queen = @player.pieces.create!(kind: 'queen', square: 22)
+        bishop = @player.pieces.create!(kind: 'bishop', square: 26)
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
 
         rook.try_move(23)
-        bishop.try_move(19)
+        bishop.try_move(rook.square)
 
         expect_moves([
           { 20 => { moving: [rook.id] }, 19 => { moving: [bishop.id] }, 22 => { initial: queen.id }},
           { 21 => { moving: [rook.id] }, 19 => { moved: bishop.id }, 22 => { initial: queen.id }},
           { 22 => { moving: [rook.id], initial: queen.id }, 19 => { moved: bishop.id }},
           { 19 => { bumped: rook.id }, 26 => { bumped: bishop.id }, 22 => { initial: queen.id }},
+        ])
+      end
+
+      it "chains several bumps" do
+        knight = @player.pieces.create!(kind: 'knight', square: 36)
+        queen = @player.pieces.create!(kind: 'queen', square: 21)
+        bishop = @player.pieces.create!(kind: 'bishop', square: 26)
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
+
+        rook.try_move(23)
+        bishop.try_move(rook.square)
+        knight.try_move(bishop.square)
+
+        expect_moves([
+          {
+            20 => { moving: [rook.id] },
+            19 => { moving: [bishop.id] },
+            21 => { initial: queen.id },
+            26 => { moving: [knight.id] },
+          },
+          {
+            21 => { moving: [rook.id], initial: queen.id },
+            19 => { moved: bishop.id },
+            26 => { moved: knight.id },
+          },
+          {
+            19 => { bumped: rook.id },
+            26 => { bumped: bishop.id },
+            36 => { bumped: knight.id },
+            21 => { initial: queen.id },
+          },
         ])
       end
     end
@@ -291,8 +335,8 @@ RSpec.describe Game do
       end
 
       it "does not capture when both capturing pieces bump each other" do
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
         bishop = @player.pieces.create!(kind: 'bishop', square: 43)
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
 
         other_player = @game.players.create!(is_black: false)
         queen = other_player.pieces.create!(kind: 'queen', square: 22)

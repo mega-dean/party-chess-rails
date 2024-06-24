@@ -67,7 +67,12 @@ class Piece < ApplicationRecord
 
   # Optional game arg in case game is already in memory.
   def get_current_move(game = self.player.game)
-    self.moves.where(turn: game.current_turn).only!
+    current_moves = self.moves.where(turn: game.current_turn)
+    if current_moves.length > 1
+      raise "too many current moves for Piece #{self.id} (move ids: #{moves.map(&:id)})"
+    else
+      current_moves.first
+    end
   end
 
   private
@@ -315,56 +320,6 @@ class Piece < ApplicationRecord
   def get_moves(count, &blk)
     count.times.map do |i|
       yield(i + 1)
-    end
-  end
-
-  def knight_moves
-    current_location = game.square_to_location(self.square)
-
-    # . . 0 . 1 . .
-    # . 2 . . . 3 .
-    # . . . K . . .
-    # . 4 . . . 5 .
-    # . . 6 . 7 . .
-    moves = [
-      self.square - 17,
-      self.square - 15,
-      self.square - 10,
-      self.square - 6,
-      self.square + 6,
-      self.square + 10,
-      self.square + 15,
-      self.square + 17,
-    ]
-
-    move_indexes = (0..7).to_set
-
-    if current_location[:x] == 0
-      move_indexes.subtract([0, 2, 4, 6])
-    elsif current_location[:x] == 1
-      move_indexes.subtract([2, 4])
-    end
-
-    if current_location[:x] == 7
-      move_indexes.subtract([1, 3, 5, 7])
-    elsif current_location[:x] == 6
-      move_indexes.subtract([3, 5])
-    end
-
-    if current_location[:y] == 0
-      move_indexes.subtract([0, 1, 2, 3])
-    elsif current_location[:y] == 1
-      move_indexes.subtract([0, 1])
-    end
-
-    if current_location[:y] == 7
-      move_indexes.subtract([4, 5, 6, 7])
-    elsif current_location[:y] == 6
-      move_indexes.subtract([6, 7])
-    end
-
-    moves.select.with_index do |location, idx|
-      move_indexes.include?(idx)
     end
   end
 
