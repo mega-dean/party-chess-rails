@@ -383,5 +383,41 @@ RSpec.describe Game do
         expect_captured(queen)
       end
     end
+
+    describe "moves to adjacent boards" do
+      xit "moves pieces to different boards" do
+        rook = @player.pieces.create!(kind: 'rook', square: 36)
+        rook.try_move(@game.location_to_square({
+          board_x: 1,
+          board_y: 0,
+          x: 0,
+          y: 4,
+        }))
+
+        move_steps_on_initial_board = @game.get_move_steps[[0, 0]]
+        move_steps_on_adjacent_board = @game.get_move_steps[[1, 0]]
+
+        expect_moves(
+          [
+            { 37 => { moving: [rook.id] }},
+            { 38 => { moving: [rook.id] }},
+            { 39 => { moving: [rook.id] }},
+            {}
+          ],
+          move_steps_on_initial_board,
+        )
+
+        expect_moves(
+          [
+            {},
+            {},
+            {},
+            { 96 => { moving: [rook.id] }},
+            { 96 => { moved: rook.id }},
+          ],
+          move_steps_on_adjacent_board,
+        )
+      end
+    end
   end
 end
