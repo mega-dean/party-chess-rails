@@ -1,5 +1,5 @@
 <%
-target_moves ||= player.game.board_hash
+move_targets ||= player.game.board_hash(:hash)
 selected_piece ||= nil
 %>
 
@@ -27,14 +27,17 @@ selected_piece ||= nil
             <% end %>
           <% end %>
 
-          <% target_moves[[board_x, board_y]].each do |target_square| %>
-            <div class="move-target"
-                 data-controller="move"
-                 data-move-target-square-value="<%= target_square %>"
-                 data-move-selected-piece-id-value="<%= selected_piece&.id %>"
-                 data-action="click->move#selectTarget"
-                 style="<%= get_translate(player.game, target_square) %>">
-            </div>
+          <% move_targets[[board_x, board_y]].each do |direction, target_squares| %>
+            <% target_squares.each do |target_square| %>
+              <div class="move-target"
+                   data-controller="move"
+                   data-move-direction-value="<%= direction %>"
+                   data-move-target-square-value="<%= target_square %>"
+                   data-move-selected-piece-id-value="<%= selected_piece&.id %>"
+                   data-action="click->move#selectTarget"
+                   style="<%= get_translate(player.game, target_square) %>">
+              </div>
+            <% end %>
           <% end %>
 
           <% player.pending_moves[[board_x, board_y]].each do |move| %>

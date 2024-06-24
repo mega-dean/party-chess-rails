@@ -10,11 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_17_012716) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_24_205004) do
   create_table "games", force: :cascade do |t|
     t.integer "boards_tall", null: false
     t.integer "boards_wide", null: false
-    t.integer "next_move_number", default: 1, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "current_turn", default: 0, null: false
@@ -26,6 +25,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_17_012716) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "turn", null: false
+    t.string "direction", null: false
     t.index ["piece_id"], name: "index_moves_on_piece_id"
   end
 

@@ -93,6 +93,7 @@ class Move < ApplicationRecord
     end
   end
 
+  def on_same_board(square)
     start_location = self.piece.player.game.square_to_location(square)
     target_location = self.piece.player.game.square_to_location(self.target_square)
 

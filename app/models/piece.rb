@@ -6,16 +6,16 @@ class Piece < ApplicationRecord
 
   validates :kind, inclusion: { in: KINDS }
 
-  def try_move(target_square)
+  def try_move(target_square, direction)
     valid_target_squares = self.get_target_squares
 
-    if valid_target_squares.any? {|_, squares| squares.include?(target_square) }
+    if valid_target_squares.any? {|_, squares| squares.values.flatten.include?(target_square) }
       move = self.moves.find_by(turn: game.current_turn)
 
       if move
-        move.update!(target_square: target_square)
+        move.update!(target_square: target_square, direction: direction)
       else
-        self.moves.create!(target_square: target_square, turn: game.current_turn)
+        self.moves.create!(target_square: target_square, turn: game.current_turn, direction: direction)
       end
 
       broadcast_replace_to "game_board", target: 'board-grid', partial: "games/board_grid", locals: {
@@ -28,7 +28,7 @@ class Piece < ApplicationRecord
   def set_as_selected
     broadcast_replace_to "game_board", target: 'board-grid', partial: "games/board_grid", locals: {
       player: self.player,
-      target_moves: self.get_target_squares,
+      move_targets: self.get_target_squares,
       selected_piece: self,
     }
   end
@@ -44,25 +44,25 @@ class Piece < ApplicationRecord
   def get_target_squares
     current_location = game.square_to_location(self.square)
 
-    target_moves = game.board_hash
+    move_targets = game.board_hash(:hash)
 
     if self.kind == 'knight'
-      set_knight_moves(target_moves, current_location)
+      set_knight_moves(move_targets, current_location)
     elsif self.kind == 'bishop'
-      target_moves[[current_location[:board_x], current_location[:board_y]]] = diagonal_moves
-      set_diagonal_moves_to_adjacent_boards(target_moves, current_location)
+      move_targets[[current_location[:board_x], current_location[:board_y]]] = diagonal_moves
+      set_diagonal_moves_to_adjacent_boards(move_targets, current_location)
     elsif self.kind == 'rook'
-      target_moves[[current_location[:board_x], current_location[:board_y]]] = horizontal_moves
-      set_horizontal_moves_to_adjacent_boards(target_moves, current_location)
+      move_targets[[current_location[:board_x], current_location[:board_y]]] = horizontal_moves
+      set_horizontal_moves_to_adjacent_boards(move_targets, current_location)
     elsif self.kind == 'queen'
-      target_moves[[current_location[:board_x], current_location[:board_y]]] = diagonal_moves + horizontal_moves
-      set_horizontal_moves_to_adjacent_boards(target_moves, current_location)
-      set_diagonal_moves_to_adjacent_boards(target_moves, current_location)
+      move_targets[[current_location[:board_x], current_location[:board_y]]] = diagonal_moves.merge(horizontal_moves)
+      set_horizontal_moves_to_adjacent_boards(move_targets, current_location)
+      set_diagonal_moves_to_adjacent_boards(move_targets, current_location)
     else
       raise("unreachable: unknown kind #{self.kind}")
     end
 
-    target_moves
+    move_targets
   end
 
   # Optional game arg in case game is already in memory.
@@ -77,7 +77,7 @@ class Piece < ApplicationRecord
 
   private
 
-  def set_knight_moves(target_moves, current_location)
+  def set_knight_moves(move_targets, current_location)
     x = current_location[:x]
     y = current_location[:y]
     board_x = current_location[:board_x]
@@ -125,7 +125,8 @@ class Piece < ApplicationRecord
       end
     end
 
-    new_moves = [
+    new_targets = {}
+    [
       { left: 1, up: 2 },
       { left: 2, up: 1 },
       { left: 1, down: 2 },
@@ -134,19 +135,22 @@ class Piece < ApplicationRecord
       { right: 2, up: 1 },
       { right: 1, down: 2 },
       { right: 2, down: 1 },
-    ].map do |dist|
-      {
+    ].each do |dist|
+      # Knight move direction isn't used for anything - just making this unique per-move so that it follows the
+      # same format as adjacent-board moves for other piece kinds.
+      direction = dist.map { |k, v| "#{k}#{v}" }.join.to_sym
+      new_targets[direction] = [{
         board_x: get_board_x.(dist),
         board_y: get_board_y.(dist),
         x: get_x.(dist),
         y: get_y.(dist),
-      }
+      }]
     end
 
-    add_moves(target_moves, new_moves)
+    add_moves(move_targets, new_targets)
   end
 
-  def set_diagonal_moves_to_adjacent_boards(target_moves, current_location)
+  def set_diagonal_moves_to_adjacent_boards(move_targets, current_location)
     x = current_location[:x]
     y = current_location[:y]
 
@@ -244,10 +248,15 @@ class Piece < ApplicationRecord
       ]
     end
 
-    add_moves(target_moves, [up_left_target, up_right_target, down_left_target, down_right_target])
+    add_moves(move_targets, {
+      up_left: [up_left_target],
+      up_right: [up_right_target],
+      down_left: [down_left_target],
+      down_right: [down_right_target],
+    })
   end
 
-  def set_horizontal_moves_to_adjacent_boards(target_moves, current_location)
+  def set_horizontal_moves_to_adjacent_boards(move_targets, current_location)
     up = {
       board_x: current_location[:board_x],
       board_y: current_location[:board_y] - 1,
@@ -273,23 +282,21 @@ class Piece < ApplicationRecord
       y: current_location[:y],
     }
 
-    add_moves(target_moves, [up, down, left, right])
+    add_moves(move_targets, { up: [up], down: [down], left: [left], right: [right] })
   end
 
-  def add_moves(target_moves, new_moves)
-    new_moves.each do |target_location|
-      board_x = target_location[:board_x]
-      board_y = target_location[:board_y]
-      if 0 <= board_x && board_x < game.boards_wide &&
-          0 <= board_y && board_y < game.boards_tall
-        target_moves[[board_x, board_y]] ||= []
-        target_moves[[board_x, board_y]] <<
-          game.location_to_square({
-            board_x: board_x,
-            board_y: board_y,
-            x: target_location[:x],
-            y: target_location[:y],
-          })
+  # FIXME use add_moves for same-board moves too
+  def add_moves(move_targets, new_move_locations)
+    new_move_locations.each do |direction, target_locations|
+      target_locations.each do |target_location|
+        board_x = target_location[:board_x]
+        board_y = target_location[:board_y]
+        if 0 <= board_x && board_x < game.boards_wide &&
+            0 <= board_y && board_y < game.boards_tall
+          move_targets[[board_x, board_y]] ||= {}
+          move_targets[[board_x, board_y]][direction] ||= []
+          move_targets[[board_x, board_y]][direction] << game.location_to_square(target_location)
+        end
       end
     end
   end
@@ -297,10 +304,12 @@ class Piece < ApplicationRecord
   def horizontal_moves
     location = game.square_to_location(self.square)
 
-    get_moves(location[:y]) { |i| self.square - (8 * i) } +
-      get_moves(7 - location[:y]) { |i| self.square + (8 * i) } +
-      get_moves(location[:x]) { |i| self.square - i } +
-      get_moves(7 - location[:x]) { |i| self.square + i }
+    {
+      up: get_moves(location[:y]) { |i| self.square - (8 * i) },
+      down: get_moves(7 - location[:y]) { |i| self.square + (8 * i) },
+      left: get_moves(location[:x]) { |i| self.square - i },
+      right: get_moves(7 - location[:x]) { |i| self.square + i },
+    }
   end
 
   def diagonal_moves
@@ -311,10 +320,12 @@ class Piece < ApplicationRecord
     down_left_targets = [location[:x], 7 - location[:y]].min
     down_right_targets = [7 - location[:x], 7 - location[:y]].min
 
-    get_moves(up_left_targets) { |i| self.square - (9 * i) } +
-      get_moves(up_right_targets) { |i| self.square - (7 * i) } +
-      get_moves(down_left_targets) { |i| self.square + (7 * i) } +
-      get_moves(down_right_targets) { |i| self.square + (9 * i) }
+    {
+      up_left: get_moves(up_left_targets) { |i| self.square - (9 * i) },
+      up_right: get_moves(up_right_targets) { |i| self.square - (7 * i) },
+      down_left: get_moves(down_left_targets) { |i| self.square + (7 * i) },
+      down_right: get_moves(down_right_targets) { |i| self.square + (9 * i) },
+    }
   end
 
   def get_moves(count, &blk)

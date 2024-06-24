@@ -12,12 +12,15 @@ class Game < ApplicationRecord
     self.update!(current_turn: 0)
   end
 
-  def board_hash
+  def board_hash(value_type)
     h = {}
 
     self.boards_tall.times do |board_y|
       self.boards_wide.times do |board_x|
-        h[[board_x, board_y]] = []
+        h[[board_x, board_y]] = {
+          array: [],
+          hash: {},
+        }[value_type] || raise("game.board_hash: unknown value_type #{value_type}")
       end
     end
 
@@ -25,7 +28,7 @@ class Game < ApplicationRecord
   end
 
   def pieces_by_board
-    h = self.board_hash
+    h = self.board_hash(:array)
 
     players.includes(:pieces).each do |player|
       player.pieces.each do |piece|
@@ -90,7 +93,6 @@ class Game < ApplicationRecord
 
   def get_move_steps
     steps = {}
-    pieces_by_board = self.pieces_by_board
     all_pieces = Game.includes(players: { pieces: :moves }).find(self.id).players.flat_map(&:pieces)
 
     cache = {}
@@ -113,7 +115,7 @@ class Game < ApplicationRecord
     bumped_pieces = Set.new
     captured_pieces = Set.new
 
-    board_hash = self.board_hash
+    board_hash = self.board_hash(:array)
 
     Move::INTERMEDIATE_SQUARES_PER_TURN.times.map do |idx|
       # FIXME Don't use pieces_by_board here - select pieces where intermediate_squares[idx] is on board_x/y

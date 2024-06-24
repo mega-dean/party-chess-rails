@@ -5,6 +5,7 @@ export default class extends Controller {
     id: Number,
     selectedPieceId: Number,
     targetSquare: Number,
+    direction: String,
   }
 
   selectPiece() {
@@ -20,6 +21,7 @@ export default class extends Controller {
     this.post_json('/moves', {
       piece_id: this.selectedPieceIdValue,
       target_square: this.targetSquareValue,
+      direction: this.directionValue,
     });
   }
 
