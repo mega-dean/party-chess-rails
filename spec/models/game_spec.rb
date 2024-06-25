@@ -142,45 +142,31 @@ RSpec.describe Game do
       )
     end
 
-    describe "rook movement" do
-      it "steps through each square for linear pieces" do
-        rook = @player.pieces.create!(kind: 'rook', square: 73)
-        rook.try_move(@game.location_to_square({
-          board_x: 1,
-          board_y: 0,
-          x: 5,
-          y: 1,
-        }))
-        move_steps = @game.get_move_steps[[1, 0]]
+    it "steps through each square for linear pieces" do
+      rook = @player.pieces.create!(kind: 'rook', square: 73)
+      rook.try_move(77, :right)
+      move_steps = @game.get_move_steps[[1, 0]]
 
-        expect_moves(
-          [
-            { 74 => { moving: [rook.id] }},
-            { 75 => { moving: [rook.id] }},
-            { 76 => { moving: [rook.id] }},
-            { 77 => { moving: [rook.id] }},
-            { 77 => { moved: rook.id }},
-          ],
-          move_steps,
-        )
-      end
+      expect_moves(
+        [
+          { 74 => { moving: [rook.id] }},
+          { 75 => { moving: [rook.id] }},
+          { 76 => { moving: [rook.id] }},
+          { 77 => { moving: [rook.id] }},
+          { 77 => { moved: rook.id }},
+        ],
+        move_steps,
+      )
     end
 
-    describe "knight movement" do
-      it "moves knights in one step" do
-        knight = @player.pieces.create!(kind: 'knight', square: 20)
-        knight.try_move(@game.location_to_square({
-          board_x: 0,
-          board_y: 0,
-          x: 3,
-          y: 4,
-        }))
+    it "moves knights in one step" do
+      knight = @player.pieces.create!(kind: 'knight', square: 20)
+      knight.try_move(35, :left1down2)
 
-        expect_moves([
-          { 35 => { moving: [knight.id] }},
-          { 35 => { moved: knight.id }},
-        ])
-      end
+      expect_moves([
+        { 35 => { moving: [knight.id] }},
+        { 35 => { moved: knight.id }},
+      ])
     end
 
     describe "bumped pieces" do
@@ -188,19 +174,8 @@ RSpec.describe Game do
         bishop = @player.pieces.create!(kind: 'bishop', square: 21)
         rook = @player.pieces.create!(kind: 'rook', square: 19)
 
-        rook.try_move(@game.location_to_square({
-          board_x: 0,
-          board_y: 0,
-          x: 3,
-          y: 6,
-        }))
-
-        bishop.try_move(@game.location_to_square({
-          board_x: 0,
-          board_y: 0,
-          x: 1,
-          y: 6,
-        }))
+        rook.try_move(51, :down)
+        bishop.try_move(49, :down_left)
 
         expect_moves([
           { 27 => { moving: [rook.id]}, 28 => { moving: [bishop.id] }},
@@ -213,8 +188,8 @@ RSpec.describe Game do
         queen = @player.pieces.create!(kind: 'queen', square: 22)
         rook = @player.pieces.create!(kind: 'rook', square: 19)
 
-        rook.try_move(23)
-        queen.try_move(17)
+        rook.try_move(23, :right)
+        queen.try_move(17, :left)
 
         expect_moves([
           { 20 => { moving: [rook.id] }, 21 => { moving: [queen.id] }},
@@ -230,8 +205,8 @@ RSpec.describe Game do
         queen = @player.pieces.create!(kind: 'queen', square: 22)
         rook = @player.pieces.create!(kind: 'rook', square: 19)
 
-        rook.try_move(21)
-        queen.try_move(21)
+        rook.try_move(21, :right)
+        queen.try_move(21, :left)
 
         expect_moves([
           { 20 => { moving: [rook.id] }, 21 => { moving: [queen.id] }},
@@ -244,7 +219,7 @@ RSpec.describe Game do
         queen = @player.pieces.create!(kind: 'queen', square: 22)
         rook = @player.pieces.create!(kind: 'rook', square: 19)
 
-        rook.try_move(23)
+        rook.try_move(23, :right)
 
         expect_moves([
           { 20 => { moving: [rook.id] }, 22 => { initial: queen.id }},
@@ -259,8 +234,8 @@ RSpec.describe Game do
         bishop = @player.pieces.create!(kind: 'bishop', square: 26)
         rook = @player.pieces.create!(kind: 'rook', square: 19)
 
-        rook.try_move(23)
-        bishop.try_move(rook.square)
+        rook.try_move(23, :right)
+        bishop.try_move(rook.square, :up_right)
 
         expect_moves([
           { 20 => { moving: [rook.id] }, 19 => { moving: [bishop.id] }, 22 => { initial: queen.id }},
@@ -276,9 +251,9 @@ RSpec.describe Game do
         bishop = @player.pieces.create!(kind: 'bishop', square: 26)
         rook = @player.pieces.create!(kind: 'rook', square: 19)
 
-        rook.try_move(23)
-        bishop.try_move(rook.square)
-        knight.try_move(bishop.square)
+        rook.try_move(23, :right)
+        bishop.try_move(rook.square, :up_right)
+        knight.try_move(bishop.square, :left2up1)
 
         expect_moves([
           {
@@ -317,7 +292,7 @@ RSpec.describe Game do
         other_player = @game.players.create!(is_black: false)
         queen = other_player.pieces.create!(kind: 'queen', square: 22)
 
-        rook.try_move(22)
+        rook.try_move(22, :right)
 
         move_steps = @game.get_move_steps[[0, 0]]
 
@@ -341,8 +316,8 @@ RSpec.describe Game do
         other_player = @game.players.create!(is_black: false)
         queen = other_player.pieces.create!(kind: 'queen', square: 22)
 
-        rook.try_move(22)
-        bishop.try_move(22)
+        rook.try_move(22, :right)
+        bishop.try_move(22, :up_right)
 
         move_steps = @game.get_move_steps[[0, 0]]
 
@@ -370,7 +345,7 @@ RSpec.describe Game do
         queen = other_player.pieces.create!(kind: 'queen', square: 22)
         bishop = other_player.pieces.create!(kind: 'bishop', square: 20)
 
-        rook.try_move(22)
+        rook.try_move(22, :right)
 
         expect_moves([
           { 20 => { moving: [rook.id], initial: bishop.id }, 22 => { initial: queen.id }},

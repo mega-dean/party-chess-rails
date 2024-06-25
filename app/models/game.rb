@@ -118,7 +118,6 @@ class Game < ApplicationRecord
     board_hash = self.board_hash(:array)
 
     Move::INTERMEDIATE_SQUARES_PER_TURN.times.map do |idx|
-      # FIXME Don't use pieces_by_board here - select pieces where intermediate_squares[idx] is on board_x/y
       board_hash.each do |(board_x, board_y), _|
         steps[[board_x, board_y]] ||= []
         step = {}

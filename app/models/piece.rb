@@ -147,7 +147,7 @@ class Piece < ApplicationRecord
       }]
     end
 
-    add_moves(move_targets, new_targets)
+    add_target_locations(move_targets, new_targets)
   end
 
   def set_diagonal_moves_to_adjacent_boards(move_targets, current_location)
@@ -248,7 +248,7 @@ class Piece < ApplicationRecord
       ]
     end
 
-    add_moves(move_targets, {
+    add_target_locations(move_targets, {
       up_left: [up_left_target],
       up_right: [up_right_target],
       down_left: [down_left_target],
@@ -282,11 +282,10 @@ class Piece < ApplicationRecord
       y: current_location[:y],
     }
 
-    add_moves(move_targets, { up: [up], down: [down], left: [left], right: [right] })
+    add_target_locations(move_targets, { up: [up], down: [down], left: [left], right: [right] })
   end
 
-  # FIXME use add_moves for same-board moves too
-  def add_moves(move_targets, new_move_locations)
+  def add_target_locations(move_targets, new_move_locations)
     new_move_locations.each do |direction, target_locations|
       target_locations.each do |target_location|
         board_x = target_location[:board_x]
