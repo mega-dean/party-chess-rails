@@ -15,4 +15,6 @@ Rails.application.routes.draw do
   get 'pieces/:id/deselect', to: 'pieces#deselect'
 
   get 'games/:id/process_moves', to: 'games#process_moves', as: 'process_moves'
+
+  get 'games/:id/refresh/:player_id', to: 'games#refresh', as: 'refresh_game'
 end

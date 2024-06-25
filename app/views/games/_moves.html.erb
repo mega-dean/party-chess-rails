@@ -1,12 +1,21 @@
+<% step_time = 400 %>
 
-<div id='game-moves'>
+<div id="game-moves">
   <% data&.each do |(board_x, board_y), steps| %>
     <% steps.each.with_index do |step, idx| %>
       <div data-controller="piece"
-           data-piece-wait-time-value="<%= idx * 400 %>"
+           data-piece-wait-time-value="<%= idx * step_time %>"
            data-piece-move-generation-value="<%= step.to_json %>"
       >
       </div>
     <% end %>
   <% end %>
+
+  <div id="refresh-grid"
+       data-controller="refresh"
+       data-refresh-wait-time-value="<%= step_time * Move::INTERMEDIATE_SQUARES_PER_TURN %>"
+       data-refresh-game-id-value="<%= player.game.id %>"
+       data-refresh-player-id-value="<%= player.id %>"
+  >
+  </div>
 </div>

@@ -225,6 +225,12 @@ class Game < ApplicationRecord
     self.broadcast_move_steps(steps)
   end
 
+  def broadcast_refresh(player)
+    broadcast_replace_to "game_board", target: 'board-grid', partial: "games/board_grid", locals: {
+      player: player,
+    }
+  end
+
   private
 
   def apply_move_steps(steps_by_board)
@@ -265,6 +271,7 @@ class Game < ApplicationRecord
 
       broadcast_replace_to "player_#{player.id}_moves", target: 'game-moves', partial: "games/moves", locals: {
         data: data,
+        player: player,
       }
     end
   end

@@ -14,4 +14,12 @@ class GamesController < ApplicationController
 
     head :ok
   end
+
+  # CLEANUP maybe don't call this "refresh" since this doesn't actually refresh the browser page
+  def refresh
+    game = Game.find(params[:id])
+    player = Player.find(params[:player_id])
+
+    game.broadcast_refresh(player)
+  end
 end
