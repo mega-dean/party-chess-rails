@@ -89,6 +89,7 @@ html {
 
 .current-player {
     background-color: rgba(20, 150, 150, 0.5);
+    z-index: 1;
 }
 
 .pending-move {
@@ -96,6 +97,7 @@ html {
     height: 0.1rem;
     background-color: rgba(20, 150, 150, 0.5);
     transform-origin: 0 50%;
+    z-index: 2;
 }
 
 img.piece {
@@ -103,4 +105,5 @@ img.piece {
     position: absolute;
     height: 4rem;
     width: 4rem;
+    z-index: 1;
 }

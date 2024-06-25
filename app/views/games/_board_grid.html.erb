@@ -3,7 +3,11 @@ move_targets ||= player.game.board_hash(:hash)
 selected_piece ||= nil
 %>
 
-<div id='board-grid' class='board-grid'>
+<div id='board-grid'
+     class='board-grid'
+     data-boards-tall='<%= player.game.boards_tall %>'
+     data-boards-wide='<%= player.game.boards_wide %>'
+>
   <% player.game.boards_tall.times do |board_y| %>
     <div class='board-row'>
       <% player.game.boards_wide.times do |board_x| %>
@@ -23,7 +27,12 @@ selected_piece ||= nil
           <% end %>
           <% if has_piece_on_board %>
             <% pieces_on_board.each do |piece| %>
-              <%= render partial: piece, locals: { player: player, selected_piece: selected_piece } %>
+              <%= render partial: piece, locals: {
+                player: player,
+                selected_piece: selected_piece,
+                board_x: board_x,
+                board_y: board_y,
+              } %>
             <% end %>
           <% end %>
 

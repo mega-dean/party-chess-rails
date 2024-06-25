@@ -8,6 +8,8 @@ transform_style = get_translate(piece.player.game, piece.square)
        data-controller="move"
        data-move-id-value="<%= piece.id %>"
        data-move-selected-piece-id-value="<%= selected_piece&.id %>"
+       data-board-x="<%= board_x %>"
+       data-board-y="<%= board_y %>"
        style="<%= transform_style %>"
        data-action="click->move#selectPiece"
   >

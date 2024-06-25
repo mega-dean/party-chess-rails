@@ -240,11 +240,27 @@ class Game < ApplicationRecord
   end
 
   def broadcast_move_steps(steps_by_board)
+    pieces_by_board = self.pieces_by_board
     self.players.each do |player|
-      data = steps_by_board.select do |(board_x, board_y), _steps|
-        self.pieces_by_board[[board_x, board_y]].any? do |piece|
+      data = steps_by_board.select do |(board_x, board_y), steps|
+        # FIXME write tests for this
+
+        piece_ends_on_board = pieces_by_board[[board_x, board_y]].any? do |piece|
           piece.player_id == player.id
         end
+
+        piece_moves_on_board = steps.any? do |step|
+          step.any? do |square, piece_steps|
+            piece_steps.any? do |_, piece_ids|
+              # FIXME this works, but too many queries
+              Piece.where(id: piece_ids).any? do |piece|
+                piece.player_id == player.id
+              end
+            end
+          end
+        end
+
+        piece_ends_on_board || piece_moves_on_board
       end
 
       broadcast_replace_to "player_#{player.id}_moves", target: 'game-moves', partial: "games/moves", locals: {
