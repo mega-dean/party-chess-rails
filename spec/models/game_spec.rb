@@ -360,14 +360,14 @@ RSpec.describe Game do
     end
 
     describe "moves to adjacent boards" do
-      xit "moves pieces to different boards" do
+      it "moves pieces to different boards" do
         rook = @player.pieces.create!(kind: 'rook', square: 36)
         rook.try_move(@game.location_to_square({
           board_x: 1,
           board_y: 0,
           x: 0,
           y: 4,
-        }))
+        }), :right)
 
         move_steps_on_initial_board = @game.get_move_steps[[0, 0]]
         move_steps_on_adjacent_board = @game.get_move_steps[[1, 0]]
