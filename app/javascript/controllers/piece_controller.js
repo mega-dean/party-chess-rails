@@ -20,6 +20,7 @@ export default class extends Controller {
     });
 
     [...document.getElementsByClassName('pending-move')].forEach((node) => node.remove());
+    document.getElementById('board-grid').removeAttribute('data-moves-allowed-now');
   }
 
   movePieceTo(id, dest) {

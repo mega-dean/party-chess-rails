@@ -8,9 +8,7 @@ export default class extends Controller {
   }
 
   connect() {
-    // TODO
-    // - show spinner or something to show "game is currently refreshing"
-    // - prevent moves during refresh
+    // TODO Show spinner or something to show "game is currently refreshing".
     new Promise((resolve) => setTimeout(resolve, this.waitTimeValue)).then(() => {
       fetch(`/games/${this.gameIdValue}/refresh/${this.playerIdValue}`);
     });

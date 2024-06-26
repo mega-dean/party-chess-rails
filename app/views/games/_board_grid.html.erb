@@ -7,6 +7,7 @@ selected_piece ||= nil
      class='board-grid'
      data-boards-tall='<%= player.game.boards_tall %>'
      data-boards-wide='<%= player.game.boards_wide %>'
+     data-moves-allowed-now='yes'
 >
   <% player.game.boards_tall.times do |board_y| %>
     <div class='board-row'>
