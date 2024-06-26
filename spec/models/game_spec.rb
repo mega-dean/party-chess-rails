@@ -1,11 +1,14 @@
 require "rails_helper"
 
 RSpec.describe Game do
-  specify "pieces_by_board" do
-    game = Game.create!(boards_wide: 2, boards_tall: 2)
-    player = game.players.create!(is_black: true)
+  before do
+    @game = Game.create(boards_tall: 2, boards_wide: 2)
+    @big_game = Game.create(boards_tall: 10, boards_wide: 10)
+    @player = @game.players.create!(is_black: true)
+  end
 
-    player.pieces.create!(square: 0, kind: 'knight')
+  specify "pieces_by_board" do
+    @player.pieces.create!(square: 0, kind: 'knight')
 
     {
       [0, 0] => 1,
@@ -13,10 +16,10 @@ RSpec.describe Game do
       [0, 1] => 0,
       [1, 1] => 0,
     }.each do |coords, expected|
-      expect(game.pieces_by_board[coords].count).to eq(expected)
+      expect(@game.pieces_by_board[coords].count).to eq(expected)
     end
 
-    player.pieces.create!(square: 1, kind: 'knight')
+    @player.pieces.create!(square: 1, kind: 'knight')
 
     {
       [0, 0] => 2,
@@ -24,10 +27,10 @@ RSpec.describe Game do
       [0, 1] => 0,
       [1, 1] => 0,
     }.each do |coords, expected|
-      expect(game.pieces_by_board[coords].count).to eq(expected)
+      expect(@game.pieces_by_board[coords].count).to eq(expected)
     end
 
-    player.pieces.create!(square: 64, kind: 'knight')
+    @player.pieces.create!(square: 64, kind: 'knight')
 
     {
       [0, 0] => 2,
@@ -35,10 +38,10 @@ RSpec.describe Game do
       [0, 1] => 0,
       [1, 1] => 0,
     }.each do |coords, expected|
-      expect(game.pieces_by_board[coords].count).to eq(expected)
+      expect(@game.pieces_by_board[coords].count).to eq(expected)
     end
 
-    player.pieces.create!(square: 64 * 3, kind: 'knight')
+    @player.pieces.create!(square: 64 * 3, kind: 'knight')
 
     {
       [0, 0] => 2,
@@ -46,10 +49,10 @@ RSpec.describe Game do
       [0, 1] => 0,
       [1, 1] => 1,
     }.each do |coords, expected|
-      expect(game.pieces_by_board[coords].count).to eq(expected)
+      expect(@game.pieces_by_board[coords].count).to eq(expected)
     end
 
-    player.pieces.create!(square: 64 * 2, kind: 'knight')
+    @player.pieces.create!(square: 64 * 2, kind: 'knight')
 
     {
       [0, 0] => 2,
@@ -57,12 +60,11 @@ RSpec.describe Game do
       [0, 1] => 1,
       [1, 1] => 1,
     }.each do |coords, expected|
-      expect(game.pieces_by_board[coords].count).to eq(expected)
+      expect(@game.pieces_by_board[coords].count).to eq(expected)
     end
   end
 
   specify "location_to_square" do
-    game = Game.new(boards_wide: 10, boards_tall: 10)
     cases = {
       [ 0, 0, 0, 0 ] => 0,
       [ 1, 0, 0, 0 ] => 64,
@@ -73,12 +75,11 @@ RSpec.describe Game do
       [ 1, 2, 3, 4 ] => 1379,
     }
     cases.each do |c, expected|
-      expect(game.location_to_square({ board_x: c[0], board_y: c[1], x: c[2], y: c[3] })).to eq(expected)
+      expect(@big_game.location_to_square({ board_x: c[0], board_y: c[1], x: c[2], y: c[3] })).to eq(expected)
     end
   end
 
   specify "square_to_location" do
-    game = Game.new(boards_wide: 10, boards_tall: 10)
     cases = {
       0 => [ 0, 0, 0, 0 ],
       64 => [ 1, 0, 0, 0 ],
@@ -89,7 +90,7 @@ RSpec.describe Game do
       1379 => [ 1, 2, 3, 4 ],
     }
     cases.each do |square, expected|
-      h = game.square_to_location(square)
+      h = @big_game.square_to_location(square)
 
       expect(h[:board_x]).to eq(expected[0])
       expect(h[:board_y]).to eq(expected[1])
@@ -99,11 +100,6 @@ RSpec.describe Game do
   end
 
   describe "get_move_steps" do
-    before do
-      @game = Game.create(boards_tall: 2, boards_wide: 2)
-      @player = @game.players.create!(is_black: true)
-    end
-
     def sort_values(h)
       h.each do |k, sub_h|
         sub_h.each do |sub_k, v|
@@ -362,12 +358,7 @@ RSpec.describe Game do
     describe "moves to adjacent boards" do
       it "moves pieces to different boards" do
         rook = @player.pieces.create!(kind: 'rook', square: 36)
-        rook.try_move(@game.location_to_square({
-          board_x: 1,
-          board_y: 0,
-          x: 0,
-          y: 4,
-        }), :right)
+        rook.try_move(96, :right)
 
         move_steps_on_initial_board = @game.get_move_steps[[0, 0]]
         move_steps_on_adjacent_board = @game.get_move_steps[[1, 0]]
@@ -393,6 +384,83 @@ RSpec.describe Game do
           move_steps_on_adjacent_board,
         )
       end
+
+      it "can bump pieces that move to different boards" do
+        rook = @player.pieces.create!(kind: 'rook', square: 36)
+        knight = @player.pieces.create!(kind: 'knight', square: 96)
+        rook.try_move(96, :right)
+
+        move_steps_on_initial_board = @game.get_move_steps[[0, 0]]
+        move_steps_on_adjacent_board = @game.get_move_steps[[1, 0]]
+
+        expect_moves(
+          [
+            { 37 => { moving: [rook.id] }},
+            { 38 => { moving: [rook.id] }},
+            { 39 => { moving: [rook.id] }},
+            {}
+          ],
+          move_steps_on_initial_board,
+        )
+
+        expect_moves(
+          [
+            { 96 => { initial: knight.id }},
+            { 96 => { initial: knight.id }},
+            { 96 => { initial: knight.id }},
+            { 96 => { moving: [rook.id], initial: knight.id }},
+            # TODO It's a little weird that the bumped piece isn't moved back to the correct board, but the frontend can
+            # handle moves to different boards now so it doesn't really matter.
+            { 96 => { initial: knight.id }, 36 => { bumped: rook.id }},
+          ],
+          move_steps_on_adjacent_board,
+        )
+      end
+    end
+  end
+
+  describe "get_boards_to_broadcast" do
+    def expect_broadcast_boards(expected_boards)
+      steps = @game.get_move_steps
+      @game.apply_move_steps(steps)
+      broadcast_boards = @game.get_boards_to_broadcast(@player, steps)
+
+      expect(broadcast_boards.keys.sort).to eq(expected_boards.sort)
+    end
+
+    specify "pieces starting on board" do
+      rook = @player.pieces.create!(kind: 'rook', square: 36)
+      rook.try_move(39, :right)
+
+      expect_broadcast_boards([[0, 0]])
+    end
+
+    specify "pieces ending on board" do
+      rook = @player.pieces.create!(kind: 'rook', square: 39)
+      rook.try_move(96, :right)
+
+      bishop = @player.pieces.create!(kind: 'bishop', square: 0)
+      bishop.try_move(192, :down_right)
+
+      expect_broadcast_boards([[0, 0], [1, 0], [1, 1]])
+    end
+
+    specify "piece moves to board but gets bumped back" do
+      rook = @player.pieces.create!(kind: 'rook', square: 36)
+      other_player = @game.players.create!(is_black: @player.is_black)
+      knight = other_player.pieces.create!(kind: 'knight', square: 96)
+      rook.try_move(96, :right)
+
+      expect_broadcast_boards([[0, 0], [1, 0]])
+    end
+
+    specify "piece on edge of board moves to board but gets bumped back" do
+      rook = @player.pieces.create!(kind: 'rook', square: 39)
+      other_player = @game.players.create!(is_black: @player.is_black)
+      knight = other_player.pieces.create!(kind: 'knight', square: 96)
+      rook.try_move(96, :right)
+
+      expect_broadcast_boards([[1, 0]])
     end
   end
 end

@@ -1,6 +1,6 @@
 class SessionsController < ApplicationController
   def create
-    # CLEANUP error handling
+    # TMP Need to create a Player.
     game = Game.find(params[:game_id])
     join_game(player, game)
   end

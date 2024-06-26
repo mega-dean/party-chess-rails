@@ -27,7 +27,7 @@ export default class extends Controller {
     const relativeDestX = dest % 8;
     const relativeDestY = Math.floor((dest % 64) / 8);
 
-    // CLEANUP duplicated in application_controller.rb (not sure this can be avoided though)
+    // TODO This is duplicated in application_controller.rb.
     const squareRem = 4;
     const paddingRem = 0.6;
     const boardSize = (8 * squareRem) + (2 * paddingRem);

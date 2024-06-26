@@ -98,7 +98,7 @@ class Game < ApplicationRecord
     cache = {}
 
     all_pieces.each do |piece|
-      move = piece.get_current_move(self)
+      move = piece.current_move(self)
       intermediate_squares = if move
         move.get_intermediate_squares
       else
@@ -123,22 +123,22 @@ class Game < ApplicationRecord
         step = {}
 
         get_stage = -> (piece) do
-          stage = {}
+          stage = Piece::Stage.new
           intermediate_squares = cache[piece.id][:intermediate_squares]
           current_square = intermediate_squares[idx]
           previous_square = idx > 0 && intermediate_squares[idx - 1]
-          stage[:square] = current_square
+          stage.square = current_square
 
           if captured_pieces.include?(piece.id)
-            stage[:kind] = :captured
+            stage.kind = :captured
           else
             if piece.square == current_square
-              stage[:kind] = :initial
+              stage.kind = :initial
             elsif idx > 0 && current_square == previous_square
-              stage[:kind] = :moved
+              stage.kind = :moved
             else
-              stage[:is_array] = true
-              stage[:kind] = :moving
+              stage.is_array = true
+              stage.kind = :moving
             end
           end
 
@@ -152,20 +152,17 @@ class Game < ApplicationRecord
 
           if current_location[:board_x] == board_x && current_location[:board_y] == board_y
             piece_stage = if bumped_pieces.include?(piece.id)
-              {
-                kind: :bumped,
-                square: piece.square,
-              }
+              Piece::Stage.new(kind: :bumped, square: piece.square)
             else
               get_stage.(piece)
             end
-            step[piece_stage[:square]] ||= {}
+            step[piece_stage.square] ||= {}
 
-            if piece_stage[:is_array]
-              step[piece_stage[:square]][piece_stage[:kind]] ||= []
-              step[piece_stage[:square]][piece_stage[:kind]] << piece.id
+            if piece_stage.is_array
+              step[piece_stage.square][piece_stage.kind] ||= []
+              step[piece_stage.square][piece_stage.kind] << piece.id
             else
-              step[piece_stage[:square]][piece_stage[:kind]] = piece.id
+              step[piece_stage.square][piece_stage.kind] = piece.id
             end
 
             step.each do |square, piece_steps|
@@ -231,7 +228,19 @@ class Game < ApplicationRecord
     }
   end
 
-  private
+  def get_boards_to_broadcast(player, steps_by_board)
+    player_piece_ids = Set.new(player.pieces.map(&:id))
+
+    steps_by_board.select do |(board_x, board_y), steps|
+      piece_moves_on_board = steps.any? do |step|
+        step.any? do |square, piece_steps|
+          piece_steps.any? do |_, piece_ids|
+            player_piece_ids.intersect?(Array.wrap(piece_ids))
+          end
+        end
+      end
+    end
+  end
 
   def apply_move_steps(steps_by_board)
     self.update!(current_turn: self.current_turn + 1)
@@ -245,29 +254,12 @@ class Game < ApplicationRecord
     end
   end
 
+  private
+
   def broadcast_move_steps(steps_by_board)
     pieces_by_board = self.pieces_by_board
     self.players.each do |player|
-      data = steps_by_board.select do |(board_x, board_y), steps|
-        # FIXME write tests for this
-
-        piece_ends_on_board = pieces_by_board[[board_x, board_y]].any? do |piece|
-          piece.player_id == player.id
-        end
-
-        piece_moves_on_board = steps.any? do |step|
-          step.any? do |square, piece_steps|
-            piece_steps.any? do |_, piece_ids|
-              # FIXME this works, but too many queries
-              Piece.where(id: piece_ids).any? do |piece|
-                piece.player_id == player.id
-              end
-            end
-          end
-        end
-
-        piece_ends_on_board || piece_moves_on_board
-      end
+      data = get_boards_to_broadcast(player, steps_by_board)
 
       broadcast_replace_to "player_#{player.id}_moves", target: 'game-moves', partial: "games/moves", locals: {
         data: data,

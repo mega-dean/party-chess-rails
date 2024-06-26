@@ -1,6 +1,6 @@
 class ApplicationController < ActionController::Base
   def current_player
-    # CLEANUP tmp
+    # TMP
     @current_player ||= Player.find(5)
     # @current_player ||= if session[:player_id]
     #   Player.find(session[:player_id])
