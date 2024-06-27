@@ -2,6 +2,8 @@ class SessionsController < ApplicationController
   def create
     # TMP Need to create a Player.
     game = Game.find(params[:game_id])
+    player = game.players.create!(is_black: Player.count.even?)
+    player.pieces.create!(kind: Piece::KINDS.sample, square: (0..64).to_a.sample)
     join_game(player, game)
   end
 

@@ -223,7 +223,7 @@ class Game < ApplicationRecord
   end
 
   def broadcast_refresh(player)
-    broadcast_replace_to "game_board", target: 'board-grid', partial: "games/board_grid", locals: {
+    broadcast_replace_to "player_#{player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
       player: player,
     }
   end

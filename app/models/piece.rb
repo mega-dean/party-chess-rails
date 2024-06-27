@@ -27,7 +27,7 @@ class Piece < ApplicationRecord
         self.moves.create!(target_square: target_square, turn: game.current_turn, direction: direction)
       end
 
-      broadcast_replace_to "game_board", target: 'board-grid', partial: "games/board_grid", locals: {
+      broadcast_replace_to "player_#{self.player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
         player: self.player,
       }
     end
@@ -35,7 +35,7 @@ class Piece < ApplicationRecord
 
   # Not calling this `.select` because that method already exists on Models.
   def set_as_selected
-    broadcast_replace_to "game_board", target: 'board-grid', partial: "games/board_grid", locals: {
+    broadcast_replace_to "player_#{self.player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
       player: self.player,
       move_targets: self.get_target_squares,
       selected_piece: self,
@@ -45,7 +45,7 @@ class Piece < ApplicationRecord
   def deselect
     self.current_move&.destroy!
 
-    broadcast_replace_to "game_board", target: 'board-grid', partial: "games/board_grid", locals: {
+    broadcast_replace_to "player_#{self.player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
       player: self.player,
     }
   end

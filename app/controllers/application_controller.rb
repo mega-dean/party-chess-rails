@@ -1,10 +1,10 @@
 class ApplicationController < ActionController::Base
   def current_player
     # TMP
-    @current_player ||= Player.find(5)
-    # @current_player ||= if session[:player_id]
-    #   Player.find(session[:player_id])
-    # end
+    # @current_player ||= Player.find(5)
+    @current_player ||= if session[:player_id]
+      Player.find(session[:player_id])
+    end
   end
 
   helper_method :get_translate

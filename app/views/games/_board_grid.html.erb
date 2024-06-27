@@ -1,13 +1,16 @@
 <%
 move_targets ||= player.game.board_hash(:hash)
 selected_piece ||= nil
+currently_moving = if player.game.current_turn.even? then 'white' else 'black' end
+# Using an empty string because js checks this value, so it has to evaluate to `false`.
+moves_allowed = if player.color == currently_moving then 'yes' else '' end
 %>
 
 <div id='board-grid'
      class='board-grid'
      data-boards-tall='<%= player.game.boards_tall %>'
      data-boards-wide='<%= player.game.boards_wide %>'
-     data-moves-allowed-now='yes'
+     data-moves-allowed-now='<%= moves_allowed %>'
 >
   <% player.game.boards_tall.times do |board_y| %>
     <div class='board-row'>
