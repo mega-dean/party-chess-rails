@@ -18,6 +18,8 @@ transform_style = get_translate(piece.player.game, piece.square)
 <% else %>
   <div id="piece-<%= piece.id %>"
        class="piece-container"
+       data-board-x="<%= board_x %>"
+       data-board-y="<%= board_y %>"
        style="<%= transform_style %>">
     <%= image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece') %>
   </div>
