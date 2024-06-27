@@ -13,7 +13,7 @@ class Piece < ApplicationRecord
   # - :moved - the piece moved to this square last step, and this is the move.target_square
   # - :bumped - the piece tried moving somewhere, but got bumped back here
   # - :captured - the piece was captured
-  Stage = Struct.new(:kind, :square, :is_array, keyword_init: true)
+  Stage = Struct.new(:kind, :target_square, :original_board, :is_array, keyword_init: true)
 
   def try_move(target_square, direction)
     valid_target_squares = self.get_target_squares

@@ -12,6 +12,7 @@ moves_allowed = if player.color == currently_moving then 'yes' else '' end
      data-boards-wide='<%= player.game.boards_wide %>'
      data-moves-allowed-now='<%= moves_allowed %>'
 >
+  <div>currently moving: <%= currently_moving %></div>
   <% player.game.boards_tall.times do |board_y| %>
     <div class='board-row'>
       <% player.game.boards_wide.times do |board_x| %>

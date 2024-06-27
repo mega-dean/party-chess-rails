@@ -118,7 +118,7 @@ class Game < ApplicationRecord
     board_hash = self.board_hash(:array)
 
     Move::INTERMEDIATE_SQUARES_PER_TURN.times.map do |idx|
-      board_hash.each do |(board_x, board_y), _|
+      board_hash.each.with_index do |((board_x, board_y), _), board_idx|
         steps[[board_x, board_y]] ||= []
         step = {}
 
@@ -127,7 +127,16 @@ class Game < ApplicationRecord
           intermediate_squares = cache[piece.id][:intermediate_squares]
           current_square = intermediate_squares[idx]
           previous_square = idx > 0 && intermediate_squares[idx - 1]
-          stage.square = current_square
+          stage.target_square = current_square
+          # binding.pry
+          previous_square = if idx == 0
+            piece.square
+          else
+            cache[piece.id][:intermediate_squares][idx - 1]
+          end
+
+          previous_location = self.square_to_location(previous_square)
+          stage.original_board = [previous_location[:board_x], previous_location[:board_y]]
 
           if captured_pieces.include?(piece.id)
             stage.kind = :captured
@@ -147,22 +156,48 @@ class Game < ApplicationRecord
 
         cache.each do |_piece_id, piece_cache|
           piece = piece_cache[:piece]
-          current_square = cache[piece.id][:intermediate_squares][idx]
+          current_square = piece_cache[:intermediate_squares][idx]
           current_location = self.square_to_location(current_square)
 
           if current_location[:board_x] == board_x && current_location[:board_y] == board_y
             piece_stage = if bumped_pieces.include?(piece.id)
-              Piece::Stage.new(kind: :bumped, square: piece.square)
+              original_piece_location = self.square_to_location(piece.square)
+              original_board_x, original_board_y = [original_piece_location[:board_x], original_piece_location[:board_y]]
+              steps[[original_board_x, original_board_y]][idx] ||= {}
+              steps[[original_board_x, original_board_y]][idx].merge!(piece.square => { bumped: piece.id })
+
+              Piece::Stage.new(kind: :bumped, target_square: piece.square, original_board: [original_board_x, original_board_y])
             else
               get_stage.(piece)
             end
-            step[piece_stage.square] ||= {}
+            step[piece_stage.target_square] ||= {}
+
+            def changed_boards(stage)
+              target_location = self.square_to_location(stage.target_square)
+              original_board_x, original_board_y = [stage.original_board[0], stage.original_board[1]]
+
+              original_board_x != target_location[:board_x] || stage.original_board[1] != target_location[:board_y]
+            end
+
+            if changed_boards(piece_stage)
+              original_piece_location = self.square_to_location(piece.square)
+              original_board_x, original_board_y = [original_piece_location[:board_x], original_piece_location[:board_y]]
+
+              steps[[original_board_x, original_board_y]] ||= []
+              steps[[original_board_x, original_board_y]][idx] ||= {}
+
+              # `piece_stage.is_array` will always be true if changed_boards is true because the only way to change
+              # boards is to be :moving (since :bumped is handled separately).
+              steps[[original_board_x, original_board_y]][idx][piece_stage.target_square] ||= {}
+              steps[[original_board_x, original_board_y]][idx][piece_stage.target_square][piece_stage.kind] ||= []
+              steps[[original_board_x, original_board_y]][idx][piece_stage.target_square][piece_stage.kind] << piece.id
+            end
 
             if piece_stage.is_array
-              step[piece_stage.square][piece_stage.kind] ||= []
-              step[piece_stage.square][piece_stage.kind] << piece.id
+              step[piece_stage.target_square][piece_stage.kind] ||= []
+              step[piece_stage.target_square][piece_stage.kind] << piece.id
             else
-              step[piece_stage.square][piece_stage.kind] = piece.id
+              step[piece_stage.target_square][piece_stage.kind] = piece.id
             end
 
             step.each do |square, piece_steps|
@@ -189,13 +224,13 @@ class Game < ApplicationRecord
                 end
               end
 
-              chain_bump = -> (piece_id) {
+              chain_bump = -> (piece_id) do
                 chained_bump_square = cache[piece_id][:piece].square
                 if chained_bump_piece_id = step[chained_bump_square] && step[chained_bump_square][:moved]
                   bumped_pieces.add(chained_bump_piece_id)
                   chain_bump.(chained_bump_piece_id)
                 end
-              }
+              end
 
               if bump_moving_pieces
                 bumped_pieces.merge(piece_steps[:moving])
@@ -207,7 +242,10 @@ class Game < ApplicationRecord
           end
         end
 
-        steps[[board_x, board_y]][idx] = step
+        # Need to merge here because when pieces move to adjacent boards up or left, they are added as :bumped before
+        # the board_x/y iteration has happened.
+        steps[[board_x, board_y]][idx] ||= {}
+        steps[[board_x, board_y]][idx].merge!(step)
 
         Piece.where(id: captured_pieces).destroy_all
       end
@@ -257,9 +295,14 @@ class Game < ApplicationRecord
   private
 
   def broadcast_move_steps(steps_by_board)
+    broadcast_log = File.open("#{Rails.root}/log/broadcasts.log", "a")
+    broadcast_log << "\n=============== turn #{self.current_turn} ===============\n"
+
     pieces_by_board = self.pieces_by_board
     self.players.each do |player|
       data = get_boards_to_broadcast(player, steps_by_board)
+
+      broadcast_log << "  player #{player.id}:\n#{data.to_yaml}\n\n"
 
       broadcast_replace_to "player_#{player.id}_moves", target: 'game-moves', partial: "games/moves", locals: {
         data: data,

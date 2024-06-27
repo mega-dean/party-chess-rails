@@ -368,7 +368,8 @@ RSpec.describe Game do
             { 37 => { moving: [rook.id] }},
             { 38 => { moving: [rook.id] }},
             { 39 => { moving: [rook.id] }},
-            {}
+            { 96 => { moving: [rook.id] }},
+            {},
           ],
           move_steps_on_initial_board,
         )
@@ -398,7 +399,8 @@ RSpec.describe Game do
             { 37 => { moving: [rook.id] }},
             { 38 => { moving: [rook.id] }},
             { 39 => { moving: [rook.id] }},
-            {}
+            { 96 => { moving: [rook.id] }},
+            { 36 => { bumped: rook.id }},
           ],
           move_steps_on_initial_board,
         )
@@ -409,13 +411,13 @@ RSpec.describe Game do
             { 96 => { initial: knight.id }},
             { 96 => { initial: knight.id }},
             { 96 => { moving: [rook.id], initial: knight.id }},
-            # TODO It's a little weird that the bumped piece isn't moved back to the correct board, but the frontend can
-            # handle moves to different boards now so it doesn't really matter.
             { 96 => { initial: knight.id }, 36 => { bumped: rook.id }},
           ],
           move_steps_on_adjacent_board,
         )
       end
+
+      # FIXME add a test for chained bumps from adjacent boards
     end
   end
 
@@ -460,7 +462,7 @@ RSpec.describe Game do
       knight = other_player.pieces.create!(kind: 'knight', square: 96)
       rook.try_move(96, :right)
 
-      expect_broadcast_boards([[1, 0]])
+      expect_broadcast_boards([[0, 0], [1, 0]])
     end
   end
 end
