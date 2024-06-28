@@ -417,7 +417,37 @@ RSpec.describe Game do
         )
       end
 
-      # FIXME add a test for chained bumps from adjacent boards
+      it "can chain bump pieces that move to different boards" do
+        rook = @player.pieces.create!(kind: 'rook', square: 96)
+        knight = @player.pieces.create!(kind: 'knight', square: 12)
+        bishop = @player.pieces.create!(kind: 'bishop', square: 39)
+
+        bishop.try_move(12, :up_left)
+        rook.try_move(39, :left)
+
+        move_steps_on_initial_board = @game.get_move_steps[[0, 0]]
+        move_steps_on_adjacent_board = @game.get_move_steps[[1, 0]]
+
+        expect_moves(
+          [
+            { 12 => { initial: knight.id }, 30 => { moving: [bishop.id] }, 39 => { moving: [rook.id] }},
+            { 12 => { initial: knight.id }, 21 => { moving: [bishop.id] }, 39 => { moved: rook.id }},
+            { 12 => { initial: knight.id, moving: [bishop.id] }, 39 => { moved: rook.id }},
+            { 12 => { initial: knight.id }, 39 => { bumped: bishop.id }, 96 => { bumped: rook.id }},
+          ],
+          move_steps_on_initial_board,
+        )
+
+        expect_moves(
+          [
+            { 39 => { moving: [rook.id] }},
+            {},
+            {},
+            { 96 => { bumped: rook.id }},
+          ],
+          move_steps_on_adjacent_board,
+        )
+      end
     end
   end
 

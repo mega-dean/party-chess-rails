@@ -47,6 +47,7 @@ html {
     width: 4rem;
     height: 4rem;
     transition: transform 0.25s ease;
+    z-index: 2;
 }
 
 #target-moves {
