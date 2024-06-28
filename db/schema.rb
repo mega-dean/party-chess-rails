@@ -10,13 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_24_205004) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_28_150951) do
   create_table "games", force: :cascade do |t|
     t.integer "boards_tall", null: false
     t.integer "boards_wide", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "current_turn", default: 0, null: false
+    t.integer "minimum_turn_duration", default: 10, null: false
   end
 
   create_table "moves", force: :cascade do |t|

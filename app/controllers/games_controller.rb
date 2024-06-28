@@ -10,7 +10,8 @@ class GamesController < ApplicationController
   # TMP Processing moves won't be triggered by request from frontend.
   def process_moves
     game = Game.find(params[:id])
-    game.process_current_moves
+    # game.process_current_moves
+    ProcessMovesJob.perform_later(game.id, game.current_turn)
 
     head :ok
   end

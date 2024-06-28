@@ -40,6 +40,19 @@ class Game < ApplicationRecord
     h
   end
 
+  def find_empty_square(board_x, board_y)
+    min = self.location_to_square({
+      board_x: board_x,
+      board_y: board_y,
+      x: 0,
+      y: 0,
+    })
+    max = min + 63
+    pieces = pieces_by_board[[board_x, board_y]]
+    empty_squares = (min..max).to_a - pieces.map(&:square)
+    empty_squares.sample || raise("no more empty squares on [#{board_x}, #{board_y}]")
+  end
+
   # Each board is 64 consecutive indexes:
   # + - - - - - - - - + - - - - - - - - +
   # | 0 1 2 3 4 5 6 7 | 64 64 66 ...    |
