@@ -1,7 +1,7 @@
 <%
 move_targets ||= player.game.board_hash(:hash)
 selected_piece ||= nil
-currently_moving = if player.game.current_turn.even? then 'white' else 'black' end
+currently_moving = player.game.current_color
 # Using an empty string because js checks this value, so it has to evaluate to `false`.
 moves_allowed = if player.color == currently_moving then 'yes' else '' end
 %>
@@ -12,7 +12,21 @@ moves_allowed = if player.color == currently_moving then 'yes' else '' end
      data-boards-wide='<%= player.game.boards_wide %>'
      data-moves-allowed-now='<%= moves_allowed %>'
 >
-  <div>currently moving: <%= currently_moving %></div>
+  <div id="header">
+    <div id="turn-indicator"
+         data-controller="turn-indicator"
+         data-turn-indicator-current-color-value="<%= player.game.current_color %>"
+         data-turn-indicator-turn-duration-value="<%= player.game.minimum_turn_duration %>"
+         data-turn-indicator-moves-allowed-value="<%= moves_allowed %>"
+    >
+      <div id="traffic-lights">
+        <div id="green-light" class="traffic-light"></div>
+        <div id="yellow-light" class="traffic-light"></div>
+        <div id="red-light" class="traffic-light"></div>
+      </div>
+    </div>
+  </div>
+
   <% player.game.boards_tall.times do |board_y| %>
     <div class='board-row'>
       <% player.game.boards_wide.times do |board_x| %>

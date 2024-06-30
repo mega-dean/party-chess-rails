@@ -1,6 +1,10 @@
 class Game < ApplicationRecord
   has_many :players
 
+  def current_color
+    if self.current_turn.even? then 'white' else 'black' end
+  end
+
   def reset
     Game.includes(players: { pieces: :moves })
       .find_by(id: self.id)

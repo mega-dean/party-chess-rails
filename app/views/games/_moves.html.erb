@@ -11,11 +11,13 @@
     <% end %>
   <% end %>
 
-  <div id="refresh-grid"
-       data-controller="refresh"
-       data-refresh-wait-time-value="<%= step_time * Move::INTERMEDIATE_SQUARES_PER_TURN %>"
-       data-refresh-game-id-value="<%= player.game.id %>"
-       data-refresh-player-id-value="<%= player.id %>"
-  >
-  </div>
+  <% if data %>
+    <div id="refresh-grid"
+         data-controller="refresh"
+         data-refresh-wait-time-value="<%= step_time * Move::INTERMEDIATE_SQUARES_PER_TURN %>"
+         data-refresh-game-id-value="<%= player.game.id %>"
+         data-refresh-player-id-value="<%= player.id %>"
+    >
+    </div>
+  <% end %>
 </div>

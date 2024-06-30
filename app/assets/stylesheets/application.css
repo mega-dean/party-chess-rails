@@ -115,3 +115,38 @@ td {
     padding: 1rem;
     text-align: center;
 }
+
+.score {
+    /* border: 2px solid red; */
+    display: flex;
+}
+
+#traffic-lights {
+    /* border: 2px solid red; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 3rem;
+    width: 8rem;
+    /* margin: 1rem; */
+}
+
+.traffic-light {
+    width: 2rem;
+    height: 2rem;
+    align-self: center;
+    margin: 1px;
+}
+
+#header {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left:0;
+    width: 100%;
+    background: #777;
+    border-bottom: 1px solid black;
+    box-shadow: 0 0.5rem 1rem black;
+    padding: 1rem;
+    z-index: 10;
+}

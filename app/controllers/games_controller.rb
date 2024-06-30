@@ -4,7 +4,11 @@ class GamesController < ApplicationController
   end
 
   def show
-    @player = current_player
+    if current_player.nil?
+      redirect_to :root
+    else
+      @player = current_player
+    end
   end
 
   # TMP Processing moves won't be triggered by request from frontend.

@@ -8,7 +8,13 @@ export default class extends Controller {
   }
 
   connect() {
-    // TODO Show spinner or something to show "game is currently refreshing".
+    let turnIndicator = document.getElementById("turn-indicator");
+    let newValue = '';
+    if (!turnIndicator.dataset.turnIndicatorMovesAllowedValue) {
+      newValue = 'yes';
+    }
+    turnIndicator.dataset.turnIndicatorMovesAllowedValue = newValue;
+
     new Promise((resolve) => setTimeout(resolve, this.waitTimeValue)).then(() => {
       fetch(`/games/${this.gameIdValue}/refresh/${this.playerIdValue}`);
     });
