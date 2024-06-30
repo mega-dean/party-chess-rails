@@ -16,9 +16,11 @@ class Piece < ApplicationRecord
   Stage = Struct.new(:kind, :target_square, :original_board, :is_array, keyword_init: true)
 
   def try_move(target_square, direction)
-    valid_target_squares = self.get_target_squares
 
-    if valid_target_squares.any? {|_, squares| squares.values.flatten.include?(target_square) }
+    can_make_move = !self.player.game.processing_moves &&
+      self.get_target_squares.any? {|_, squares| squares.values.flatten.include?(target_square) }
+
+    if can_make_move
       move = self.current_move
 
       if move

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_28_150951) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_30_135040) do
   create_table "games", force: :cascade do |t|
     t.integer "boards_tall", null: false
     t.integer "boards_wide", null: false
@@ -18,6 +18,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_28_150951) do
     t.datetime "updated_at", null: false
     t.integer "current_turn", default: 0, null: false
     t.integer "minimum_turn_duration", default: 10, null: false
+    t.boolean "processing_moves", default: false, null: false
+    t.datetime "last_turn_completed_at", null: false
   end
 
   create_table "moves", force: :cascade do |t|

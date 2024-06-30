@@ -24,18 +24,10 @@ module PartyChessRails
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    config.active_job.queue_adapter = :sidekiq
-  end
-end
+    config.time_zone = "UTC"
+    config.active_record.default_timezone = :utc
 
-# CLEANUP move this somewhere
-module Enumerable
-  def only!
-    if self.length == 1
-      self.first
-    else
-      raise "#{self.class.to_s.split('::').first}.only! with #{self.length} elements"
-    end
+    config.active_job.queue_adapter = :sidekiq
   end
 end
 

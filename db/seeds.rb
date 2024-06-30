@@ -8,8 +8,8 @@
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
 
-game = Game.create!(boards_tall: 2, boards_wide: 2)
-second_game = Game.create!(boards_tall: 3, boards_wide: 3)
+game = Game.create!(boards_tall: 2, boards_wide: 2, last_turn_completed_at: Time.now.utc)
+second_game = Game.create!(boards_tall: 3, boards_wide: 3, last_turn_completed_at: Time.now.utc)
 puts "created #{Game.count} games"
 
 black_player = game.players.create!(is_black: true)

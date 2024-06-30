@@ -7,6 +7,7 @@ class ProcessMovesJob < ApplicationJob
     #   Just remember that Sidekiq will execute your job at least once, not exactly once. Even a job which has completed
     #   can be re-run. Redis can go down between the point where your job finished but before Sidekiq has acknowledged
     #   it in Redis. Sidekiq makes no exactly-once guarantee at all.
+
     if game.current_turn == turn
       game.process_current_moves
     end

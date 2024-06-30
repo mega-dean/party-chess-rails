@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Piece do
   before do
-    @game = Game.create!(boards_wide: 2, boards_tall: 2)
+    @game = Game.create!(boards_wide: 2, boards_tall: 2, last_turn_completed_at: Time.now.utc)
     @player = @game.players.create!(is_black: true)
   end
 
@@ -35,20 +35,28 @@ RSpec.describe Piece do
   end
 
   describe "try_move" do
-    it "creates a move when target location is valid" do
-      knight = @player.pieces.create!(kind: 'knight', square: 27)
+    before do
+      @knight = @player.pieces.create!(kind: 'knight', square: 27)
+    end
 
+    it "creates a move when target location is valid" do
       expect {
-        knight.try_move(10, :left1up2)
-      }.to change { knight.moves.count }.by(1)
+        @knight.try_move(10, :left1up2)
+      }.to change { @knight.moves.count }.by(1)
     end
 
     it "does nothing when target location is invalid" do
-      knight = @player.pieces.create!(kind: 'knight', square: 27)
+      expect {
+        @knight.try_move(11, :invalid)
+      }.not_to change { @knight.moves.count }
+    end
+
+    it "does nothing when the game is currently processing moves" do
+      @game.update!(processing_moves: true)
 
       expect {
-        knight.try_move(11, :invalid)
-      }.not_to change { knight.moves.count }
+        @knight.try_move(10, :left1up2)
+      }.not_to change { @knight.moves.count }
     end
   end
 

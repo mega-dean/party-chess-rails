@@ -272,12 +272,19 @@ class Game < ApplicationRecord
   end
 
   def process_current_moves
+    self.update!(processing_moves: true)
     steps = self.get_move_steps
     self.apply_move_steps(steps)
     self.broadcast_move_steps(steps)
+  ensure
+    self.update!(processing_moves: false)
   end
 
   def broadcast_refresh(player)
+    # This is updated here instead of in the ProcessMovesJob because the job runs before the piece moves are animated,
+    # and that time should be considered part of the previous turn.
+    self.update!(last_turn_completed_at: Time.now.utc)
+
     broadcast_replace_to "player_#{player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
       player: player,
     }
@@ -312,14 +319,9 @@ class Game < ApplicationRecord
   private
 
   def broadcast_move_steps(steps_by_board)
-    broadcast_log = File.open("#{Rails.root}/log/broadcasts.log", "a")
-    broadcast_log << "\n=============== turn #{self.current_turn} ===============\n"
-
     pieces_by_board = self.pieces_by_board
     self.players.each do |player|
       data = get_boards_to_broadcast(player, steps_by_board)
-
-      broadcast_log << "  player #{player.id}:\n#{data.to_yaml}\n\n"
 
       broadcast_replace_to "player_#{player.id}_moves", target: 'game-moves', partial: "games/moves", locals: {
         data: data,

@@ -8,12 +8,7 @@ export default class extends Controller {
   }
 
   connect() {
-    let turnIndicator = document.getElementById("turn-indicator");
-    let newValue = '';
-    if (!turnIndicator.dataset.turnIndicatorMovesAllowedValue) {
-      newValue = 'yes';
-    }
-    turnIndicator.dataset.turnIndicatorMovesAllowedValue = newValue;
+    this.dispatch("setRedLight");
 
     new Promise((resolve) => setTimeout(resolve, this.waitTimeValue)).then(() => {
       fetch(`/games/${this.gameIdValue}/refresh/${this.playerIdValue}`);
