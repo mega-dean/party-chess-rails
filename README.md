@@ -1,3 +1,3 @@
 # party-chess-rails
 
-https://github.com/mega-dean/party-chess-rails/assets/126992142/c2e99b94-afe8-4951-90cd-dd7a11a102b2
+https://github.com/mega-dean/party-chess-rails/assets/126992142/765465bf-f14b-4017-b4f4-b51d30326407
