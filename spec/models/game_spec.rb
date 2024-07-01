@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe Game do
-  before(:all) do
+  before do
     @game = Game.create(boards_tall: 2, boards_wide: 2, last_turn_completed_at: Time.now.utc)
     @big_game = Game.create(boards_tall: 10, boards_wide: 10, last_turn_completed_at: Time.now.utc)
     @player = @game.players.create!(is_black: true)
@@ -352,6 +352,37 @@ RSpec.describe Game do
 
         expect_captured(bishop)
         expect_captured(queen)
+      end
+
+      it "gives points and score to the capturer" do
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
+
+        other_player = @game.players.create!(is_black: false)
+        queen = other_player.pieces.create!(kind: 'queen', square: 22)
+        bishop = other_player.pieces.create!(kind: 'bishop', square: 20)
+
+        rook.try_move(22, :right)
+
+        expect {
+          @game.get_move_steps
+        }.to change { @player.reload.points }.by(8 + 2)
+          .and change { @player.reload.score }.by(8 + 2)
+      end
+
+      it "removes score from the captured" do
+        # .score is "points on the board" + "points in the bank"
+        rook = @player.pieces.create!(kind: 'rook', square: 19)
+
+        other_player = @game.players.create!(is_black: false)
+        queen = other_player.pieces.create!(kind: 'queen', square: 22)
+        bishop = other_player.pieces.create!(kind: 'bishop', square: 20)
+
+        rook.try_move(22, :right)
+
+        expect {
+          @game.get_move_steps
+        }.to change { other_player.reload.points }.by(0)
+          .and change { other_player.reload.score }.by(-(8 + 2))
       end
     end
 
