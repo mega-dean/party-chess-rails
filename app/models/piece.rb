@@ -15,8 +15,23 @@ class Piece < ApplicationRecord
   # - :captured - the piece was captured
   Stage = Struct.new(:kind, :target_square, :original_board, :is_array, keyword_init: true)
 
-  def try_move(target_square, direction)
+  def points
+    {
+      'knight' => 2,
+      'bishop' => 2,
+      'rook' => 4,
+      'queen' => 8,
+    }[self.kind]
+  end
 
+  # Cost is greater than points so that every time a capture happens, the total number of points in the game
+  # decreases. If the cost was the same as the points, then trading pieces would be inconsequential since players could
+  # just spawn a new piece immediately.
+  def cost
+    self.points + 1
+  end
+
+  def try_move(target_square, direction)
     can_make_move = !self.player.game.processing_moves &&
       self.get_target_squares.any? {|_, squares| squares.values.flatten.include?(target_square) }
 

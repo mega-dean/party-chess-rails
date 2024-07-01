@@ -31,6 +31,8 @@ moves_allowed = if player.color == currently_moving then 'yes' else '' end
         <div id="red-light" class="traffic-light"></div>
       </div>
     </div>
+    <div id="points">Points: <%= player.points %></div>
+    <div id="score">Score: <%= player.score %></div>
   </div>
 
   <% player.game.boards_tall.times do |board_y| %>

@@ -55,7 +55,7 @@ html {
 }
 
 .move-target {
-    background-color: rgba(220, 150, 150, 0.5);
+    background-color: rgba(255, 194, 10, 0.5);
     position: absolute;
     width: 4rem;
     height: 4rem;
@@ -90,14 +90,14 @@ html {
 }
 
 .current-player {
-    background-color: rgba(20, 150, 150, 0.5);
+    background-color: rgba(12, 123, 220, 0.5);
     z-index: 1;
 }
 
 .pending-move {
     position: absolute;
     height: 0.1rem;
-    background-color: rgba(20, 150, 150, 0.5);
+    background-color: rgba(12, 123, 220, 0.5);
     transform-origin: 0 50%;
     z-index: 2;
 }
@@ -149,4 +149,9 @@ td {
     box-shadow: 0 0.5rem 1rem black;
     padding: 1rem;
     z-index: 10;
+    box-sizing: border-box;
+}
+
+#score {
+    margin-left: auto; /* right-alignment */
 }

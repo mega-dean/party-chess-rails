@@ -234,6 +234,13 @@ class Game < ApplicationRecord
                       # Another piece was here and didn't move this turn.
                       true
                     else
+                      moving_piece.player.update!(
+                        score: moving_piece.player.score + other_piece.points,
+                        points: moving_piece.player.points + other_piece.points,
+                      )
+                      other_piece.player.update!(
+                        points: other_piece.player.points - other_piece.points,
+                      )
                       captured_pieces.add(other_piece.id)
                       false
                     end
