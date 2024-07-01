@@ -2,7 +2,7 @@ class Piece < ApplicationRecord
   belongs_to :player
   has_many :moves
 
-  KINDS = ['rook', 'queen', 'knight', 'bishop']
+  KINDS = ['knight', 'bishop', 'rook', 'queen']
 
   validates :kind, inclusion: { in: KINDS }
 
@@ -15,20 +15,30 @@ class Piece < ApplicationRecord
   # - :captured - the piece was captured
   Stage = Struct.new(:kind, :target_square, :original_board, :is_array, keyword_init: true)
 
-  def points
-    {
-      'knight' => 2,
-      'bishop' => 2,
-      'rook' => 4,
-      'queen' => 8,
-    }[self.kind]
+  class << self
+    def points(kind)
+      {
+        'knight' => 2,
+        'bishop' => 2,
+        'rook' => 4,
+        'queen' => 8,
+      }[kind] || raise("Piece.points: invalid kind #{kind}")
+    end
+
+    # Cost is greater than points so that every time a capture happens, the total number of points in the game
+    # decreases. If the cost was the same as the points, then trading pieces would be inconsequential since players could
+    # just spawn a new piece immediately.
+    def cost(kind)
+      points(kind) + 1
+    end
   end
 
-  # Cost is greater than points so that every time a capture happens, the total number of points in the game
-  # decreases. If the cost was the same as the points, then trading pieces would be inconsequential since players could
-  # just spawn a new piece immediately.
+  def points
+    Piece.points(self.kind)
+  end
+
   def cost
-    self.points + 1
+    Piece.cost(self.kind)
   end
 
   def try_move(target_square, direction)
@@ -60,11 +70,13 @@ class Piece < ApplicationRecord
   end
 
   def deselect
-    self.current_move&.destroy!
+    if !self.player.game.processing_moves
+      self.current_move&.destroy!
 
-    broadcast_replace_to "player_#{self.player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
-      player: self.player,
-    }
+      broadcast_replace_to "player_#{self.player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
+        player: self.player,
+      }
+    end
   end
 
   def get_target_squares

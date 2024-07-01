@@ -31,7 +31,30 @@ moves_allowed = if player.color == currently_moving then 'yes' else '' end
         <div id="red-light" class="traffic-light"></div>
       </div>
     </div>
-    <div id="points">Points: <%= player.points %></div>
+    <div id="spawn-pieces"
+         data-controller="spawn-piece"
+    >
+      <div id="points">Points: <%= player.points %></div>
+      <% Piece::KINDS.each do |kind| %>
+        <% affordable = player.points > Piece.cost(kind) %>
+        <div class="spawn-piece-button-container <%= if affordable then 'affordable' else 'not-affordable' end  %>"
+             data-spawn-piece-target="button"
+             data-kind="<%= kind %>"
+        >
+          <div>
+            <%= image_tag("#{player.color}-#{kind}",
+                          class: "spawn-piece-button",
+                          data: {
+                            kind: kind,
+                            action: "click->spawn-piece#clicked",
+                            affordable: if affordable then 'yes' else '' end,
+            })
+            %>
+          </div>
+          <div class="spawn-piece-cost"><%= Piece.cost(kind) %></div>
+        </div>
+      <% end %>
+    </div>
     <div id="score">Score: <%= player.score %></div>
   </div>
 

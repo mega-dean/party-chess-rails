@@ -20,14 +20,14 @@ export default class extends Controller {
   }
 
   selectTarget() {
-    this.post_json('/moves', {
+    this.postJson('/moves', {
       piece_id: this.selectedPieceIdValue,
       target_square: this.targetSquareValue,
       direction: this.directionValue,
     });
   }
 
-  post_json(url, body) {
+  postJson(url, body) {
     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
     fetch(url, {

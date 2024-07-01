@@ -300,6 +300,12 @@ class Game < ApplicationRecord
     }
   end
 
+  def broadcast_boards(player)
+    broadcast_replace_to "player_#{player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
+      player: player,
+    }
+  end
+
   def get_boards_to_broadcast(player, steps_by_board)
     player_piece_ids = Set.new(player.pieces.map(&:id))
 

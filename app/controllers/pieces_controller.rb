@@ -1,6 +1,4 @@
 class PiecesController < ApplicationController
-  include Turbo::Broadcastable
-
   def set_as_selected
     piece = Piece.find(params[:id])
     piece.set_as_selected

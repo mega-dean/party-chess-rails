@@ -60,6 +60,24 @@ RSpec.describe Piece do
     end
   end
 
+  describe "deselect" do
+    before do
+      @knight = @player.pieces.create!(kind: 'knight', square: 27)
+      @current_move = @knight.moves.create!(turn: @game.current_turn, target_square: 10, direction: :left1up2)
+    end
+
+    it "destroys the current move when the game isn't processing moves" do
+      @knight.deselect
+      expect{ @current_move.reload }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
+    it "does nothing when the game is processing moves" do
+      @game.update!(processing_moves: true)
+      @knight.deselect
+      expect{ @current_move.reload.id }.not_to raise_error
+    end
+  end
+
   describe "get_target_squares" do
     describe "knight" do
       it "includes all 8 moves when in the center of the board" do

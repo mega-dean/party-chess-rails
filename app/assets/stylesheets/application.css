@@ -121,6 +121,11 @@ td {
     display: flex;
 }
 
+#turn-indicator {
+    display: flex;
+    align-items: center;
+}
+
 #traffic-lights {
     /* border: 2px solid red; */
     display: flex;
@@ -147,11 +152,56 @@ td {
     background: #777;
     border-bottom: 1px solid black;
     box-shadow: 0 0.5rem 1rem black;
-    padding: 1rem;
+    padding: 0 1rem;
     z-index: 10;
     box-sizing: border-box;
 }
 
+#spawn-pieces {
+    display: flex;
+    height: 6rem;
+    margin-left: auto; /* center-alignment */
+}
+
+.spawn-piece-button-container {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 1rem;
+}
+
+.spawn-piece-button {
+    background: #bbb;
+    box-shadow: inset -2px -2px #222, inset 2px 2px #eee;
+    width: 100%;
+}
+
+.spawn-selected {
+    background: rgba(170, 68, 153, 0.5);
+    box-shadow: inset 2px 2px #222, inset -2px -2px rgba(250, 128, 203, 0.5);
+}
+
+.spawn-piece-cost {
+    text-align: center;
+    width: 100%;
+}
+
+.affordable {
+    border: 1px solid green;
+}
+
+.not-affordable {
+    border: 1px solid red;
+    opacity: 0.2;
+}
+
+#points {
+    display: flex;
+    align-items: center;
+    /* justify-content: center; */
+}
+
 #score {
+    display: flex;
+    align-items: center;
     margin-left: auto; /* right-alignment */
 }
