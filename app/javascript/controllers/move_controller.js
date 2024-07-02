@@ -20,10 +20,13 @@ export default class extends Controller {
   }
 
   selectTarget() {
+    let spawnKind = document.$('#spawn-pieces').$('.spawn-selected')[0]?.dataset.kind;
+
     this.postJson('/moves', {
       piece_id: this.selectedPieceIdValue,
       target_square: this.targetSquareValue,
       direction: this.directionValue,
+      spawn_kind: spawnKind,
     });
   }
 

@@ -21,7 +21,15 @@ green_light_timeout = green_seconds_remaining * 1000
   <div id="spawn-pieces"
        data-controller="spawn-piece"
   >
-    <div id="points">Points: <%= player.points %></div>
+    <%
+    pending_spawn_kinds = player.all_pending_moves.map(&:pending_spawn_kind).compact
+    pending_points = pending_spawn_kinds.map { |kind| Piece.cost(kind) }.sum
+    %>
+    <div id="points">
+      <div>Points: <%= player.points - pending_points %></div>
+      <div>Pending: <%= pending_points %></div>
+    </div>
+
     <% Piece::KINDS.each do |kind| %>
       <% affordable = player.points > Piece.cost(kind) %>
       <div class="spawn-piece-button-container <%= if affordable then 'affordable' else 'not-affordable' end  %>"

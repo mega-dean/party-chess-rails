@@ -20,8 +20,6 @@ Rails.application.routes.draw do
   get 'pieces/:id/select', to: 'pieces#set_as_selected'
   get 'pieces/:id/deselect', to: 'pieces#deselect'
 
-  post 'players/:id/spawn_piece', to: 'players#spawn_piece', as: 'spawn_piece'
-
   get 'games/:id/process_moves', to: 'games#process_moves', as: 'process_moves'
   get 'games/:id/refresh/:player_id', to: 'games#refresh', as: 'refresh_game'
 end

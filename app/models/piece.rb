@@ -41,21 +41,31 @@ class Piece < ApplicationRecord
     Piece.cost(self.kind)
   end
 
-  def try_move(target_square, direction)
+  def try_move(target_square, direction, spawn_kind)
     can_make_move = !self.player.game.processing_moves &&
-      self.get_target_squares.any? {|_, squares| squares.values.flatten.include?(target_square) }
+      self.get_target_squares.any? { |_, squares| squares.values.flatten.include?(target_square) }
 
     if can_make_move
       move = self.current_move
 
       if move
-        move.update!(target_square: target_square, direction: direction)
+        move.update!(
+          target_square: target_square,
+          direction: direction,
+          pending_spawn_kind: spawn_kind,
+        )
       else
-        self.moves.create!(target_square: target_square, turn: game.current_turn, direction: direction)
+        self.moves.create!(
+          target_square: target_square,
+          turn: game.current_turn,
+          direction: direction,
+          pending_spawn_kind: spawn_kind,
+        )
       end
 
       broadcast_replace_to "player_#{self.player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
         player: self.player,
+        refresh_header: true,
       }
     end
   end
@@ -75,6 +85,7 @@ class Piece < ApplicationRecord
 
       broadcast_replace_to "player_#{self.player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
         player: self.player,
+        refresh_header: true,
       }
     end
   end

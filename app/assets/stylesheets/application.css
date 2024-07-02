@@ -191,7 +191,8 @@ td {
 
 #points {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    justify-content: center; /* this centers vertically for column flex containers */
 }
 
 #score {

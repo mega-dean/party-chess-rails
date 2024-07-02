@@ -20,12 +20,12 @@ class ApplicationController < ActionController::Base
   end
 
   helper_method :get_pending_move_line
-  def get_pending_move_line(move, board_x, board_y)
+  def get_pending_move_line(game, move, board_x, board_y)
     square_rem = 4
     padding_rem = 0.6
 
-    start_location = move.piece.player.game.square_to_location(move.piece.square)
-    target_location = move.piece.player.game.square_to_location(move.target_square)
+    start_location = game.square_to_location(move.piece.square)
+    target_location = game.square_to_location(move.target_square)
 
     start_x = (square_rem * start_location[:x]) + (square_rem / 2) + padding_rem
     start_y = (square_rem * start_location[:y]) + (square_rem / 2) + padding_rem

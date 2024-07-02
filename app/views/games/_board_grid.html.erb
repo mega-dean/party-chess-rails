@@ -5,6 +5,8 @@ refresh_header ||= nil
 currently_moving = player.game.current_color
 # Using an empty string because js checks this value, so it has to evaluate to `false`.
 moves_allowed = if player.color == currently_moving then 'yes' else '' end
+pending_moves = player.pending_moves
+pieces_by_board = player.game.pieces_by_board
 %>
 
 <div id='board-grid'
@@ -24,7 +26,7 @@ moves_allowed = if player.color == currently_moving then 'yes' else '' end
     <div class='board-row'>
       <% player.game.boards_wide.times do |board_x| %>
         <%
-        pieces_on_board = player.game.pieces_by_board[[board_x, board_y]]
+        pieces_on_board = pieces_by_board[[board_x, board_y]]
         has_piece_on_board = pieces_on_board.any? { |piece| piece.player.id == player&.id }
         %>
 
@@ -61,8 +63,8 @@ moves_allowed = if player.color == currently_moving then 'yes' else '' end
             <% end %>
           <% end %>
 
-          <% player.pending_moves[[board_x, board_y]].each do |move| %>
-            <div class="pending-move" style="<%= get_pending_move_line(move, board_x, board_y) %>"></div>
+          <% pending_moves[[board_x, board_y]].each do |move| %>
+            <div class="pending-move" style="<%= get_pending_move_line(player.game, move, board_x, board_y) %>"></div>
           <% end %>
         </div>
       <% end %>

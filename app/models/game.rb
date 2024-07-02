@@ -327,7 +327,12 @@ class Game < ApplicationRecord
     steps_by_board.each do |_, steps|
       steps.last.each do |target_square, moves|
         if piece_id = moves[:moved]
-          Piece.find(piece_id).update!(square: target_square)
+          piece = Piece.find(piece_id)
+          move = piece.moves.find_by(turn: self.current_turn - 1)
+          if move.pending_spawn_kind
+            piece.player.spawn_piece(square: piece.square, kind: move.pending_spawn_kind)
+          end
+          piece.update!(square: target_square)
         end
       end
     end
