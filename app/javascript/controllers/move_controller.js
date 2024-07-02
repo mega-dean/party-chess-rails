@@ -9,7 +9,7 @@ export default class extends Controller {
   }
 
   selectPiece() {
-    if (document.getElementById('board-grid').dataset.movesAllowedNow) {
+    if (document.$('#board-grid').dataset.movesAllowedNow) {
       if (this.selectedPieceIdValue === this.idValue) {
         fetch(`/pieces/${this.selectedPieceIdValue}/deselect`);
       } else {

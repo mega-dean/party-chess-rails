@@ -1,0 +1,47 @@
+<%
+seconds_elapsed = Time.now.utc - player.game.last_turn_completed_at
+yellow_light_duration = 5 # TODO maybe vary this based on min_turn_duration
+green_seconds_remaining = (player.game.minimum_turn_duration - yellow_light_duration) - seconds_elapsed
+green_light_timeout = green_seconds_remaining * 1000
+%>
+
+<div id="header">
+  <div id="turn-indicator"
+       data-controller="turn-indicator"
+       data-turn-indicator-current-color-value="<%= player.game.current_color %>"
+       data-turn-indicator-green-light-timeout-value="<%= green_light_timeout %>"
+       data-action="refresh:setRedLight@window->turn-indicator#setRedLight"
+  >
+    <div id="traffic-lights">
+      <div id="green-light" class="traffic-light"></div>
+      <div id="yellow-light" class="traffic-light"></div>
+      <div id="red-light" class="traffic-light"></div>
+    </div>
+  </div>
+  <div id="spawn-pieces"
+       data-controller="spawn-piece"
+  >
+    <div id="points">Points: <%= player.points %></div>
+    <% Piece::KINDS.each do |kind| %>
+      <% affordable = player.points > Piece.cost(kind) %>
+      <div class="spawn-piece-button-container <%= if affordable then 'affordable' else 'not-affordable' end  %>"
+           data-spawn-piece-target="button"
+           data-kind="<%= kind %>"
+      >
+        <div>
+          <%= image_tag("#{player.color}-#{kind}",
+                        class: "spawn-piece-button",
+                        data: {
+                          kind: kind,
+                          action: "click->spawn-piece#clicked",
+                          affordable: if affordable then 'yes' else '' end,
+          })
+          %>
+        </div>
+        <div class="spawn-piece-cost"><%= Piece.cost(kind) %></div>
+      </div>
+    <% end %>
+  </div>
+  <div id="score">Score: <%= player.score %></div>
+</div>
+

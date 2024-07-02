@@ -117,7 +117,6 @@ td {
 }
 
 .score {
-    /* border: 2px solid red; */
     display: flex;
 }
 
@@ -127,13 +126,11 @@ td {
 }
 
 #traffic-lights {
-    /* border: 2px solid red; */
     display: flex;
     align-items: center;
     justify-content: center;
     height: 3rem;
     width: 8rem;
-    /* margin: 1rem; */
 }
 
 .traffic-light {
@@ -186,18 +183,15 @@ td {
 }
 
 .affordable {
-    border: 1px solid green;
 }
 
 .not-affordable {
-    border: 1px solid red;
     opacity: 0.2;
 }
 
 #points {
     display: flex;
     align-items: center;
-    /* justify-content: center; */
 }
 
 #score {

@@ -297,6 +297,7 @@ class Game < ApplicationRecord
 
     broadcast_replace_to "player_#{player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
       player: player,
+      refresh_header: true,
     }
   end
 

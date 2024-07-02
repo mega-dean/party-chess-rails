@@ -10,7 +10,7 @@ export default class extends Controller {
     new Promise((resolve) => setTimeout(resolve, this.waitTimeValue)).then(() => {
       for (let [targetSquare, moves] of Object.entries(this.moveGenerationValue)) {
         if (moves.captured) {
-          document.getElementById(`piece-${moves.captured}`)?.remove();
+          document.$(`#piece-${moves.captured}`)?.remove();
         }
         let movedPieces = (moves.moving || []).concat(moves.bumped || []);
         movedPieces.forEach((pieceId) => {
@@ -19,12 +19,12 @@ export default class extends Controller {
       }
     });
 
-    [...document.getElementsByClassName('pending-move')].forEach((node) => node.remove());
-    document.getElementById('board-grid').removeAttribute('data-moves-allowed-now');
+    [...document.$('.pending-move')].forEach((node) => node.remove());
+    document.$('#board-grid').removeAttribute('data-moves-allowed-now');
   }
 
   movePieceTo(id, dest) {
-    const piece = document.getElementById(`piece-${id}`);
+    const piece = document.$(`#piece-${id}`);
     const relativeDestX = dest % 8;
     const relativeDestY = Math.floor((dest % 64) / 8);
 
@@ -33,7 +33,7 @@ export default class extends Controller {
     const paddingRem = 0.6;
     const boardSize = (8 * squareRem) + (2 * paddingRem);
 
-    const grid = document.getElementById('board-grid');
+    const grid = document.$('#board-grid');
     const destBoardIdx = Math.floor(dest / 64);
     const destBoardX = destBoardIdx % parseInt(grid.dataset.boardsWide);
     const destBoardY = Math.floor(destBoardIdx / parseInt(grid.dataset.boardsWide));

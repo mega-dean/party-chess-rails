@@ -14,5 +14,7 @@
 <%= turbo_stream_from("player_#{@player.id}_moves") %>
 <%= render partial: "games/moves", locals: { data: nil, player: @player } %>
 
+<%= render partial: "games/board_header", locals: { player: @player } %>
+
 <%= turbo_stream_from("player_#{@player.id}_game_board") %>
 <%= render partial: "games/board_grid", locals: { player: @player } %>

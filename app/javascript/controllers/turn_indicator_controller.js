@@ -6,11 +6,10 @@ export default class extends Controller {
     greenLightTimeout: String,
   }
 
-  get low() { return 50; }
-
   connect() {
-    let trafficLight = document.getElementById("traffic-lights");
-    trafficLight.style = `background: ${this.currentColorValue}`;
+    let trafficLight = document.$("#traffic-lights");
+
+    trafficLight.style.background = this.currentColorValue;
 
     if (this.greenLightTimeoutValue > 0) {
       this.lightColor('green');
@@ -27,9 +26,9 @@ export default class extends Controller {
   }
 
   lightColor(color) {
-    var green = this.low;
-    var yellow = this.low;
-    var red = this.low;
+    var green = 50;
+    var yellow = 50;
+    var red = 50;
 
     if (color === 'green') {
       green = 255;
@@ -49,7 +48,7 @@ export default class extends Controller {
   changeColors(colors) {
     const changeLight = (colors, color) => {
       const rgb = colors[color];
-      let light = document.getElementById(`${color}-light`);
+      let light = document.$(`#${color}-light`);
       light.style = `background: rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 50)`;
     };
 
