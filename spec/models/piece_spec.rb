@@ -41,13 +41,13 @@ RSpec.describe Piece do
 
     it "creates a move when target location is valid" do
       expect {
-        @knight.try_move(10, :left1up2)
+        @knight.try_move(target_square: 10, direction: :left1up2)
       }.to change { @knight.moves.count }.by(1)
     end
 
     it "does nothing when target location is invalid" do
       expect {
-        @knight.try_move(11, :invalid)
+        @knight.try_move(target_square: 11, direction: :invalid)
       }.not_to change { @knight.moves.count }
     end
 
@@ -55,7 +55,7 @@ RSpec.describe Piece do
       @game.update!(processing_moves: true)
 
       expect {
-        @knight.try_move(10, :left1up2)
+        @knight.try_move(target_square: 10, direction: :left1up2)
       }.not_to change { @knight.moves.count }
     end
   end

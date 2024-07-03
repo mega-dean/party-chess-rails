@@ -5,7 +5,7 @@ refresh_header ||= nil
 currently_moving = player.game.current_color
 # Using an empty string because js checks this value, so it has to evaluate to `false`.
 moves_allowed = if player.color == currently_moving then 'yes' else '' end
-pending_moves = player.pending_moves
+pending_moves = player.pending_moves_by_board
 pieces_by_board = player.game.pieces_by_board
 %>
 

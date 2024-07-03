@@ -18,7 +18,7 @@ class Piece < ApplicationRecord
   class << self
     def points(kind)
       {
-        'knight' => 2,
+        'knight' => 1,
         'bishop' => 2,
         'rook' => 4,
         'queen' => 8,
@@ -41,7 +41,7 @@ class Piece < ApplicationRecord
     Piece.cost(self.kind)
   end
 
-  def try_move(target_square, direction, spawn_kind)
+  def try_move(target_square:, direction:, spawn_kind: nil)
     can_make_move = !self.player.game.processing_moves &&
       self.get_target_squares.any? { |_, squares| squares.values.flatten.include?(target_square) }
 

@@ -3,18 +3,13 @@ class PiecesController < ApplicationController
     piece = Piece.find(params[:id])
     piece.set_as_selected
 
-    respond_to do |format|
-      format.json { head :ok }
-    end
+    head :ok
   end
 
   def deselect
     piece = Piece.find(params[:id])
     piece.deselect
 
-    respond_to do |format|
-      format.json { head :ok }
-    end
+    head :ok
   end
-
 end

@@ -152,11 +152,16 @@ td {
     padding: 0 1rem;
     z-index: 10;
     box-sizing: border-box;
+    height: 6rem;
+}
+
+#content-container {
+    margin-top: 5rem;
 }
 
 #spawn-pieces {
     display: flex;
-    height: 6rem;
+    /* height: 6rem; */
     margin-left: auto; /* center-alignment */
 }
 

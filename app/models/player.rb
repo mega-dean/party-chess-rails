@@ -10,7 +10,7 @@ class Player < ApplicationRecord
     end
   end
 
-  def pending_moves
+  def pending_moves_by_board
     board_hash = self.game.board_hash(:array)
 
     self.all_pending_moves.each do |move|
@@ -32,5 +32,16 @@ class Player < ApplicationRecord
     )
     self.pieces.create!(kind: kind, square: square)
     self.game.broadcast_boards(self)
+  end
+
+  def get_points
+    pending_spawn_kinds = self.all_pending_moves.map(&:pending_spawn_kind).compact
+    pending_points = pending_spawn_kinds.map { |kind| Piece.cost(kind) }.sum
+
+    {
+      bank: self.points - pending_points,
+      pending: pending_points,
+      on_board: self.pieces.map(&:points).sum,
+    }
   end
 end

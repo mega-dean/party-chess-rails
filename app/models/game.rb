@@ -108,12 +108,10 @@ class Game < ApplicationRecord
     }
   end
 
-  def get_move_steps
-    steps = {}
-    all_pieces = Game.includes(players: { pieces: :moves }).find(self.id).players.flat_map(&:pieces)
-
+  def build_cache
     cache = {}
 
+    all_pieces = Game.includes(players: { pieces: :moves }).find(self.id).players.flat_map(&:pieces)
     all_pieces.each do |piece|
       move = piece.current_move(self)
       intermediate_squares = if move
@@ -128,6 +126,12 @@ class Game < ApplicationRecord
         intermediate_squares: intermediate_squares,
       }
     end
+
+    cache
+  end
+
+  def get_move_steps(cache)
+    steps = {}
 
     bumped_pieces = Set.new
     captured_pieces = Set.new
@@ -235,12 +239,9 @@ class Game < ApplicationRecord
                       true
                     else
                       if !captured_pieces.include?(other_piece.id)
+                        # TODO Move this into apply_move_steps so all db updates happen there.
                         moving_piece.player.update!(
-                          score: moving_piece.player.score + other_piece.points,
                           points: moving_piece.player.points + other_piece.points,
-                        )
-                        other_piece.player.update!(
-                          score: other_piece.player.score - other_piece.points,
                         )
                         captured_pieces.add(other_piece.id)
                       end
@@ -273,8 +274,6 @@ class Game < ApplicationRecord
         # the board_x/y iteration has happened.
         steps[[board_x, board_y]][idx] ||= {}
         steps[[board_x, board_y]][idx].merge!(step)
-
-        Piece.where(id: captured_pieces).destroy_all
       end
     end
 
@@ -283,8 +282,9 @@ class Game < ApplicationRecord
 
   def process_current_moves
     self.update!(processing_moves: true)
-    steps = self.get_move_steps
-    self.apply_move_steps(steps)
+    cache = self.build_cache
+    steps = self.get_move_steps(cache)
+    self.apply_move_steps(steps, cache)
     self.broadcast_move_steps(steps)
   ensure
     self.update!(processing_moves: false)
@@ -294,16 +294,13 @@ class Game < ApplicationRecord
     # This is updated here instead of in the ProcessMovesJob because the job runs before the piece moves are animated,
     # and that time should be considered part of the previous turn.
     self.update!(last_turn_completed_at: Time.now.utc)
-
-    broadcast_replace_to "player_#{player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
-      player: player,
-      refresh_header: true,
-    }
+    self.broadcast_boards(player)
   end
 
   def broadcast_boards(player)
     broadcast_replace_to "player_#{player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
       player: player,
+      refresh_header: true,
     }
   end
 
@@ -321,14 +318,22 @@ class Game < ApplicationRecord
     end
   end
 
-  def apply_move_steps(steps_by_board)
+  def apply_move_steps(steps_by_board, cache)
     self.update!(current_turn: self.current_turn + 1)
+
+    piece_ids_to_destroy = []
 
     steps_by_board.each do |_, steps|
       steps.last.each do |target_square, moves|
+        if captured_piece_id = moves[:captured]
+          piece_ids_to_destroy << captured_piece_id
+        end
+
         if piece_id = moves[:moved]
-          piece = Piece.find(piece_id)
-          move = piece.moves.find_by(turn: self.current_turn - 1)
+          cached = cache[piece_id]
+          move = cached[:move]
+          piece = cached[:piece]
+
           if move.pending_spawn_kind
             piece.player.spawn_piece(square: piece.square, kind: move.pending_spawn_kind)
           end
@@ -336,6 +341,8 @@ class Game < ApplicationRecord
         end
       end
     end
+
+    Piece.where(id: piece_ids_to_destroy).destroy_all
   end
 
   private
