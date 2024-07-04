@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Piece do
   before do
-    @game = Game.create!(boards_wide: 2, boards_tall: 2, last_turn_completed_at: Time.now.utc)
+    @game = Game.create!(boards_wide: 2, boards_tall: 2, last_turn_completed_at: Time.now.utc, current_turn: 1)
     @player = @game.players.create!(is_black: true)
   end
 

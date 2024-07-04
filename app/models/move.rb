@@ -3,6 +3,8 @@ class Move < ApplicationRecord
 
   belongs_to :piece
 
+  validate :current_color_is_this_player, on: :create
+
   def get_intermediate_squares
     intermediate_squares = if self.piece.kind == 'knight'
       [self.target_square]
@@ -80,5 +82,11 @@ class Move < ApplicationRecord
     end
 
     intermediate_squares
+  end
+
+  def current_color_is_this_player
+    if self.piece.player.color != self.piece.player.game.current_color
+      errors.add(:piece, "#{self.piece.player.color} #{self.piece.kind} tried to move, but it is #{self.piece.player.game.current_color}'s turn")
+    end
   end
 end
