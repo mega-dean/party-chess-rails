@@ -13,7 +13,9 @@ class ProcessMovesJob < ApplicationJob
     if !game.processing_moves && game.current_turn == turn
       game.process_current_moves
 
-      ProcessMovesJob.set(wait: game.minimum_turn_duration.seconds).perform_later(game.id, game.current_turn)
+      if game.reload.current_turn != game.stop_processing_moves_at
+        ProcessMovesJob.set(wait: game.minimum_turn_duration.seconds).perform_later(game.id, game.current_turn)
+      end
     end
   end
 end

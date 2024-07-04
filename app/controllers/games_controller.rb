@@ -22,9 +22,16 @@ class GamesController < ApplicationController
   # TODO Maybe don't call this "refresh" since it doesn't refresh the browser page.
   def refresh
     game = Game.find(params[:id])
-    player = Player.find(params[:player_id])
+    player = game.players.find(params[:player_id])
 
     game.broadcast_refresh(player)
+
+    head :ok
+  end
+
+  def stop_processing_moves
+    game = Game.find(params[:id])
+    game.update!(stop_processing_moves_at: game.current_turn + 1)
 
     head :ok
   end
