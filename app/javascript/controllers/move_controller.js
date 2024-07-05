@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { utils } from "./utils"
 
 export default class extends Controller {
   static values = {
@@ -19,8 +20,8 @@ export default class extends Controller {
       }
     });
 
-    [...document.$('.pending-move')].forEach((node) => node.remove());
-    document.$('#board-grid').removeAttribute('data-moves-allowed-now');
+    [...document.$$('.pending-move')].forEach((node) => node.remove());
+    utils.grid.removeAttribute('data-moves-allowed-now');
   }
 
   movePieceTo(id, dest) {
@@ -33,10 +34,9 @@ export default class extends Controller {
     const paddingRem = 0.6;
     const boardSize = (8 * squareRem) + (2 * paddingRem);
 
-    const grid = document.$('#board-grid');
     const destBoardIdx = Math.floor(dest / 64);
-    const destBoardX = destBoardIdx % parseInt(grid.dataset.boardsWide);
-    const destBoardY = Math.floor(destBoardIdx / parseInt(grid.dataset.boardsWide));
+    const destBoardX = destBoardIdx % utils.boardsWide;
+    const destBoardY = Math.floor(destBoardIdx / utils.boardsWide);
     const boardXOffset = (destBoardX - parseInt(piece.dataset.boardX)) * boardSize;
     const boardYOffset = (destBoardY - parseInt(piece.dataset.boardY)) * boardSize;
 

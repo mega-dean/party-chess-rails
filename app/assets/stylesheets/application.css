@@ -28,7 +28,8 @@ html {
 }
 
 .board {
-    border: 1px solid black;
+    /* box-sizing: border-box; */
+    /* border: 1px solid black; */
 
     /* Using this instead of grid gap. */
     padding: 0.6rem;
@@ -50,10 +51,6 @@ html {
     z-index: 2;
 }
 
-#target-moves {
-    position: absolute;
-}
-
 .move-target {
     background-color: rgba(255, 194, 10, 0.5);
     position: absolute;
@@ -70,7 +67,7 @@ html {
     height: 4rem;
     width: 4rem;
     display: inline-block;
-    box-sizing: border-box;
+    /* box-sizing: border-box; */
 }
 
 .dark-obscured {
@@ -157,6 +154,11 @@ td {
 
 #content-container {
     margin-top: 5rem;
+}
+
+#move-targets-container-0-0 {
+    border: 2px solid red;
+    position: absolute;
 }
 
 #spawn-pieces {

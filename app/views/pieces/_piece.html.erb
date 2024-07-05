@@ -7,11 +7,14 @@ transform_style = get_translate(piece.player.game, piece.square)
        class="piece-container current-player"
        data-controller="piece"
        data-piece-id-value="<%= piece.id %>"
+       data-piece-kind-value="<%= piece.kind %>"
        data-piece-selected-id-value="<%= selected_piece&.id %>"
-       data-board-x="<%= board_x %>"
-       data-board-y="<%= board_y %>"
+       data-piece-x-value="<%= x %>"
+       data-piece-y-value="<%= y %>"
+       data-piece-board-x-value="<%= board_x %>"
+       data-piece-board-y-value="<%= board_y %>"
        style="<%= transform_style %>"
-       data-action="click->piece#selectPiece"
+       data-action="click->piece#selectPiece piece:deselect-other-pieces@window->piece#deselect"
   >
     <%= image_tag("#{piece.player.color}-#{piece.kind}", class: 'piece') %>
   </div>

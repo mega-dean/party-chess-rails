@@ -26,9 +26,9 @@ export default class extends Controller {
   }
 
   lightColor(color) {
-    var green = 50;
-    var yellow = 50;
-    var red = 50;
+    let green = 50;
+    let yellow = 50;
+    let red = 50;
 
     if (color === 'green') {
       green = 255;

@@ -30,7 +30,7 @@ pieces_by_board = player.game.pieces_by_board
         has_piece_on_board = pieces_on_board.any? { |piece| piece.player.id == player&.id }
         %>
 
-        <div class="board">
+        <div id="board-<%= "#{board_x}-#{board_y}" %>" class="board">
           <% 8.times do |y| %>
             <% 8.times do |x| %>
               <% span_class = "#{y%2 == x%2 ? 'light' : 'dark'}-#{has_piece_on_board ? 'revealed' : 'obscured'}" %>
@@ -41,30 +41,23 @@ pieces_by_board = player.game.pieces_by_board
           <% end %>
           <% if has_piece_on_board %>
             <% pieces_on_board.each do |piece| %>
+              <% location = player.game.square_to_location(piece.square) %>
               <%= render partial: piece, locals: {
                 player: player,
                 selected_piece: selected_piece,
                 board_x: board_x,
                 board_y: board_y,
+                x: location[:x],
+                y: location[:y],
               } %>
             <% end %>
           <% end %>
 
-          <% move_targets[[board_x, board_y]].each do |direction, target_squares| %>
-            <% target_squares.each do |target_square| %>
-              <div class="move-target"
-                   data-controller="piece"
-                   data-piece-direction-value="<%= direction %>"
-                   data-piece-target-square-value="<%= target_square %>"
-                   data-piece-selected-id-value="<%= selected_piece&.id %>"
-                   data-action="click->piece#selectTarget"
-                   style="<%= get_translate(player.game, target_square) %>">
-              </div>
-            <% end %>
-          <% end %>
-
           <% pending_moves[[board_x, board_y]].each do |move| %>
-            <div class="pending-move" style="<%= get_pending_move_line(player.game, move, board_x, board_y) %>"></div>
+            <div class="pending-move"
+                 data-piece-id="<%= move.piece_id %>"
+                 style="<%= get_pending_move_line(player.game, move, board_x, board_y) %>"
+            ></div>
           <% end %>
         </div>
       <% end %>

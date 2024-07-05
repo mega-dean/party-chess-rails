@@ -31,6 +31,24 @@ class Piece < ApplicationRecord
     def cost(kind)
       points(kind) + 1
     end
+
+    if Rails.env.development?
+      def move(old, new)
+        Piece.where(square: old).only!.update!(square: new)
+      end
+
+      def at(square, game_id: nil)
+        if game_id
+          Piece.where(square: square).each do |piece|
+            if piece.player.game.id != game_id
+              piece.destroy!
+            end
+          end
+        end
+
+        Piece.where(square: square).only!
+      end
+    end
   end
 
   def points
