@@ -28,9 +28,6 @@ html {
 }
 
 .board {
-    /* box-sizing: border-box; */
-    /* border: 1px solid black; */
-
     /* Using this instead of grid gap. */
     padding: 0.6rem;
 
@@ -67,7 +64,6 @@ html {
     height: 4rem;
     width: 4rem;
     display: inline-block;
-    /* box-sizing: border-box; */
 }
 
 .dark-obscured {
@@ -156,14 +152,8 @@ td {
     margin-top: 5rem;
 }
 
-#move-targets-container-0-0 {
-    border: 2px solid red;
-    position: absolute;
-}
-
 #spawn-pieces {
     display: flex;
-    /* height: 6rem; */
     margin-left: auto; /* center-alignment */
 }
 

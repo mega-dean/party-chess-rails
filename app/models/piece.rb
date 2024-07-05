@@ -88,15 +88,6 @@ class Piece < ApplicationRecord
     end
   end
 
-  # Not calling this `.select` because that method already exists on Models.
-  def set_as_selected
-    broadcast_replace_to "player_#{self.player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
-      player: self.player,
-      move_targets: self.get_target_squares,
-      selected_piece: self,
-    }
-  end
-
   def deselect
     if !self.player.game.processing_moves
       self.current_move&.destroy!

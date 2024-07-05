@@ -37,8 +37,8 @@ export default class extends Controller {
     const destBoardIdx = Math.floor(dest / 64);
     const destBoardX = destBoardIdx % utils.boardsWide;
     const destBoardY = Math.floor(destBoardIdx / utils.boardsWide);
-    const boardXOffset = (destBoardX - parseInt(piece.dataset.boardX)) * boardSize;
-    const boardYOffset = (destBoardY - parseInt(piece.dataset.boardY)) * boardSize;
+    const boardXOffset = (destBoardX - parseInt(piece.dataset.pieceBoardXValue)) * boardSize;
+    const boardYOffset = (destBoardY - parseInt(piece.dataset.pieceBoardYValue)) * boardSize;
 
     const x = boardXOffset + (squareRem * relativeDestX) + paddingRem;
     const y = boardYOffset + (squareRem * relativeDestY) + paddingRem;

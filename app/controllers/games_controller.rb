@@ -12,11 +12,13 @@ class GamesController < ApplicationController
   end
 
   # TMP Processing moves won't be triggered by request from frontend.
-  def process_moves
-    game = Game.find(params[:id])
-    ProcessMovesJob.perform_later(game.id, game.current_turn)
+  if Rails.env.development?
+    def process_moves
+      game = Game.find(params[:id])
+      ProcessMovesJob.perform_later(game.id, game.current_turn)
 
-    head :ok
+      head :ok
+    end
   end
 
   # TODO Maybe don't call this "refresh" since it doesn't refresh the browser page.
