@@ -11,6 +11,7 @@ pieces_by_board = player.game.pieces_by_board
 
 <div id='board-grid'
      class='board-grid'
+     data-environment='<%= Rails.env %>'
      data-boards-tall='<%= player.game.boards_tall %>'
      data-boards-wide='<%= player.game.boards_wide %>'
      data-moves-allowed-now='<%= moves_allowed %>'

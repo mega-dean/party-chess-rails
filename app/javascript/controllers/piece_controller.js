@@ -23,7 +23,7 @@ export default class extends Controller {
       moveTarget.parentNode.removeChild(moveTarget);
     }
 
-    if (utils.grid.dataset.movesAllowedNow) {
+    if (utils.grid().dataset.movesAllowedNow) {
       if (this.isSelectedValue) {
         this.isSelectedValue = false;
 
@@ -275,8 +275,8 @@ export default class extends Controller {
 
     for (const [direction, targets] of Object.entries(locations)) {
       const filtered = targets.filter((target) => {
-        return 0 <= target.boardX && target.boardX < utils.boardsWide &&
-               0 <= target.boardY && target.boardY < utils.boardsTall;
+        return 0 <= target.boardX && target.boardX < utils.boardsWide() &&
+               0 <= target.boardY && target.boardY < utils.boardsTall();
       });
       locations[direction] = filtered;
     }

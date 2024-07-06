@@ -5,18 +5,19 @@ import "controllers"
 import "@hotwired/turbo-rails"
 
 Element.prototype.$ = function(selector) {
-  const results = this.querySelectorAll(selector);
+  if (/^[.#]/.test(selector)) {
+    const results = this.querySelectorAll(selector);
 
-  if (selector[0] === '#') {
     if (results.length > 1) {
-      console.error(`$ - found multiple elements with id #${selector}`);
+      const message = `$ - found multiple elements with selector '${selector}'`;
+      console.error(message);
+      if (document.$('#board-grid')?.dataset.environment === 'development') {
+        alert(message);
+      }
+      return;
     }
-    return results[0];
-  } else if (selector[0] === '.') {
-    if (results.length > 1) {
-      console.error(`$ - found multiple elements with class .${selector}`);
-    }
-    return results[0];
+
+    return results[0] || null;
   } else {
     console.error(`$ - invalid selector '${selector}' - needs to start with '#' or '.'`);
     return;

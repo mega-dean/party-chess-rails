@@ -21,7 +21,7 @@ export default class extends Controller {
     });
 
     [...document.$$('.pending-move')].forEach((node) => node.remove());
-    utils.grid.removeAttribute('data-moves-allowed-now');
+    utils.grid().removeAttribute('data-moves-allowed-now');
   }
 
   movePieceTo(id, dest) {
@@ -35,8 +35,8 @@ export default class extends Controller {
     const boardSize = (8 * squareRem) + (2 * paddingRem);
 
     const destBoardIdx = Math.floor(dest / 64);
-    const destBoardX = destBoardIdx % utils.boardsWide;
-    const destBoardY = Math.floor(destBoardIdx / utils.boardsWide);
+    const destBoardX = destBoardIdx % utils.boardsWide();
+    const destBoardY = Math.floor(destBoardIdx / utils.boardsWide());
     const boardXOffset = (destBoardX - parseInt(piece.dataset.pieceBoardXValue)) * boardSize;
     const boardYOffset = (destBoardY - parseInt(piece.dataset.pieceBoardYValue)) * boardSize;
 
