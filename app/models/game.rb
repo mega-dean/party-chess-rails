@@ -5,15 +5,21 @@ class Game < ApplicationRecord
     if self.current_turn.even? then 'white' else 'black' end
   end
 
-  def reset
-    Game.includes(players: { pieces: :moves })
-      .find_by(id: self.id)
-      .players
-      .flat_map(&:pieces)
-      .flat_map(&:moves)
-      .map(&:destroy!)
+  def create_player
+    self.players.create(is_black: true, points: 12)
+  end
 
-    self.update!(current_turn: 0)
+  if Rails.env.development?
+    def reset
+      Game.includes(players: { pieces: :moves })
+        .find_by(id: self.id)
+        .players
+        .flat_map(&:pieces)
+        .flat_map(&:moves)
+        .map(&:destroy!)
+
+      self.update!(current_turn: 0)
+    end
   end
 
   def board_hash(value_type)

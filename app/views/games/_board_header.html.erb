@@ -30,22 +30,18 @@ green_light_timeout = green_seconds_remaining * 1000
     </div>
 
     <% Piece::KINDS.each do |kind| %>
-      <% affordable = player.points > Piece.cost(kind) %>
-      <div class="spawn-piece-button-container <%= if affordable then 'affordable' else 'not-affordable' end  %>"
-           data-spawn-piece-target="button"
-           data-kind="<%= kind %>"
-      >
-        <div>
-          <%= image_tag("#{player.color}-#{kind}",
-                        class: "spawn-piece-button",
-                        data: {
-                          kind: kind,
-                          action: "click->spawn-piece#clicked",
-                          affordable: if affordable then 'yes' else '' end,
-          })
-          %>
-        </div>
-        <div class="spawn-piece-cost"><%= Piece.cost(kind) %></div>
+      <% affordable = points[:bank] >= Piece.cost(kind) %>
+      <div class="spawn-piece-button-container <%= if affordable then 'affordable' else 'not-affordable' end  %>">
+        <%= image_tag("#{player.color}-#{kind}",
+                      class: "piece-button",
+                      data: {
+                        kind: kind,
+                        spawn_piece_target: "button",
+                        action: "click->spawn-piece#selectPiece",
+                        affordable: if affordable then 'yes' else '' end,
+        })
+        %>
+        <div class="piece-cost"><%= Piece.cost(kind) %></div>
       </div>
     <% end %>
   </div>

@@ -1,0 +1,34 @@
+<div id="choose-party"
+     data-controller="choose-party"
+     data-choose-party-bank-value=<%= @player.get_points[:bank] %>
+>
+  <div>
+    Choose your party!
+  </div>
+  <div id="choose-party-buttons">
+    <% Piece::KINDS.each do |kind| %>
+      <div class="choose-party-button-container">
+        <%= image_tag("#{@player.color}-#{kind}",
+                      class: "piece-button",
+                      data: {
+                        kind: kind,
+                        cost: Piece.cost(kind),
+                        choose_party_target: 'button',
+                        action: "click->choose-party#choosePiece",
+                        affordable: 'yes',
+        })
+        %>
+        <div class="piece-cost"><%= Piece.cost(kind) %></div>
+      </div>
+    <% end %>
+  </div>
+
+  <div>
+    Points remaining: <span data-choose-party-target="bank">...</span>
+  </div>
+  <div id="current-party-container">
+    Current party:
+
+    <div id="current-party"></div>
+  </div>
+</div>

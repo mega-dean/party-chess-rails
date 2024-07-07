@@ -11,6 +11,11 @@ class GamesController < ApplicationController
     end
   end
 
+  def join
+    @player = current_player
+    # binding.pry
+  end
+
   # TMP Processing moves won't be triggered by request from frontend.
   if Rails.env.development?
     def process_moves
