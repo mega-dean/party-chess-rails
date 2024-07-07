@@ -1,6 +1,7 @@
+<% points = @player.get_points[:bank] %>
 <div id="choose-party"
      data-controller="choose-party"
-     data-choose-party-bank-value=<%= @player.get_points[:bank] %>
+     data-choose-party-bank-value=<%= points %>
 >
   <div>
     Choose your party!
@@ -24,11 +25,19 @@
   </div>
 
   <div>
-    Points remaining: <span data-choose-party-target="bank">...</span>
+    Points remaining: <span data-choose-party-target="bank"><%= points %></span>
   </div>
   <div id="current-party-container">
     Current party:
 
     <div id="current-party"></div>
   </div>
+
+  <button id="join-button"
+          data-action="click->choose-party#joinGame"
+          data-url="<%= join_game_path(@player.game) %>"
+          disabled
+  >
+    Join
+  </button>
 </div>

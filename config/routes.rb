@@ -16,7 +16,8 @@ Rails.application.routes.draw do
   get 'pieces/:id/deselect', to: 'pieces#deselect'
 
   get 'games/:id/refresh/:player_id', to: 'games#refresh', as: 'refresh_game'
-  get 'games/:id/join', to: 'games#join', as: 'join_game'
+  get 'games/:id/choose-party', to: 'games#choose_party', as: 'choose_party'
+  post 'games/:id/join', to: 'games#join', as: 'join_game'
 
   if Rails.env.development?
     mount Sidekiq::Web => "/sidekiq"

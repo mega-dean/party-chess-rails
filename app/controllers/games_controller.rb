@@ -11,9 +11,14 @@ class GamesController < ApplicationController
     end
   end
 
+  def choose_party
+    @player = current_player
+  end
+
   def join
     @player = current_player
     # binding.pry
+    redirect_to(game_path(params[:id]))
   end
 
   # TMP Processing moves won't be triggered by request from frontend.

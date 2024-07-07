@@ -1,17 +1,11 @@
 class SessionsController < ApplicationController
   def create
-    # TMP Need to create a Player.
     game = Game.find(params[:game_id])
-    # player = game.players.create!(is_black: Player.count.even?)
-    # player.pieces.create!(kind: Piece::KINDS.sample, square: game.find_empty_square(0, 0))
 
-    # TMP
-    # player = game.players.find(29)
     player = game.create_player
+    start_session(player)
 
-    join_game(player, game)
-
-    redirect_to(join_game_path(game))
+    redirect_to(choose_party_path(game))
   end
 
   def destroy
@@ -22,8 +16,10 @@ class SessionsController < ApplicationController
 
   private
 
-  def join_game(player, game)
+  def start_session(player)
     session[:player_id] = player.id
+    # CLEANUP this might not be needed because the definition on ApplicationController should look it up
+    # from session[:player_id]
     @current_player = player
   end
 
