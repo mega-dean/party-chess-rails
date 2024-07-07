@@ -581,4 +581,59 @@ RSpec.describe Game do
       expect_broadcast_boards([[0, 0], [1, 0]])
     end
   end
+
+  describe "choose_starting_board" do
+    it "chooses a board that has no enemy pieces" do
+      enemy_player = @game.players.create!(is_black: !@player.is_black)
+
+      [
+        [0, 0],
+        [0, 1],
+        [1, 1],
+      ].each do |board_x, board_y|
+        square = @game.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
+        enemy_player.pieces.create!(kind: 'knight', square: square)
+      end
+
+      expect(@game.choose_starting_board(player: @player, count: 1)).to eq([1, 0])
+    end
+
+    it "chooses a board that has enough empty squares" do
+      ally_player = @game.players.create!(is_black: @player.is_black)
+
+      [
+        [0, 0, 2],
+        [0, 1, 1],
+        [1, 0, 3],
+        [1, 1, 4],
+      ].each do |board_x, board_y, pieces_to_create|
+        first_square = @game.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
+
+        pieces_to_create.times do |idx|
+          ally_player.pieces.create!(kind: 'knight', square: first_square + idx)
+        end
+      end
+
+      expect(@game.choose_starting_board(player: @player, count: 62)).to eq([0, 1])
+    end
+
+    it "returns nil if there are no valid boards" do
+      ally_player = @game.players.create!(is_black: @player.is_black)
+
+      [
+        [0, 0, 2],
+        [0, 1, 2],
+        [1, 0, 3],
+        [1, 1, 4],
+      ].each do |board_x, board_y, pieces_to_create|
+        first_square = @game.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
+
+        pieces_to_create.times do |idx|
+          ally_player.pieces.create!(kind: 'knight', square: first_square + idx)
+        end
+      end
+
+      expect(@game.choose_starting_board(player: @player, count: 62)).to be(nil)
+    end
+  end
 end

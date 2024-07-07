@@ -11,7 +11,7 @@ export default class extends Controller {
 
   joinGame(event) {
     this.postJson(event.target.dataset.url, {
-      targets: this.chosenTargets.map((target) => target.dataset.kind),
+      kinds: this.chosenTargets.map((target) => target.dataset.kind),
     }).then((response) => {
       if (response.redirected) {
         window.location.href = response.url;

@@ -1,6 +1,20 @@
 class Player < ApplicationRecord
+  STARTING_POINTS = 12
+
   belongs_to :game
   has_many :pieces
+
+  def create_starting_pieces!(kinds:, starting_board_x:, starting_board_y:)
+    # CLEANUP duplicated in choose_starting_board
+    pieces = self.game.pieces_by_board[[starting_board_x, starting_board_y]]
+    first_square = self.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
+    empty_squares = (first_square..first_square+63).to_a - pieces.map(&:square)
+    starting_squares = empty_squares.shuffle
+
+    kinds.each.with_index do |kind, idx|
+      self.pieces.create!(kind: kind, square: starting_squares[idx])
+    end
+  end
 
   def color
     if is_black

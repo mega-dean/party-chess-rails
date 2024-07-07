@@ -17,7 +17,14 @@ class GamesController < ApplicationController
 
   def join
     @player = current_player
-    # binding.pry
+    starting_board_x, starting_board_y =
+      @player.game.choose_starting_board(player: @player, count: params[:kinds].length)
+
+    @player.create_starting_pieces!(
+      kinds: params[:kinds],
+      starting_board_x: starting_board_x,
+      starting_board_y: starting_board_y,
+    )
     redirect_to(game_path(params[:id]))
   end
 

@@ -5,8 +5,31 @@ class Game < ApplicationRecord
     if self.current_turn.even? then 'white' else 'black' end
   end
 
-  def create_player
-    self.players.create(is_black: true, points: 12)
+  def create_player!
+    self.players.create!(is_black: true, points: Player::STARTING_POINTS)
+  end
+
+  def choose_starting_board(player:, count:)
+    coords = []
+    self.boards_tall.times do |board_y|
+      self.boards_wide.times do |board_x|
+        coords << [board_x, board_y]
+      end
+    end
+
+    coords.shuffle.each do |board_x, board_y|
+      pieces = self.pieces_by_board[[board_x, board_y]]
+      if pieces.all? { |piece| piece.player.color == player.color }
+        first_square = self.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
+        empty_squares = (first_square...first_square + 64).to_a - pieces.map(&:square)
+
+        if empty_squares.length > count
+          return [board_x, board_y]
+        end
+      end
+    end
+
+    return nil
   end
 
   if Rails.env.development?
@@ -38,29 +61,18 @@ class Game < ApplicationRecord
   end
 
   def pieces_by_board
-    h = self.board_hash(:array)
+    @pieces_by_board ||= begin
+      h = self.board_hash(:array)
 
-    players.includes(:pieces).each do |player|
-      player.pieces.each do |piece|
-        location = self.square_to_location(piece.square)
-        h[[location[:board_x], location[:board_y]]] << piece
+      players.includes(:pieces).each do |player|
+        player.pieces.each do |piece|
+          location = self.square_to_location(piece.square)
+          h[[location[:board_x], location[:board_y]]] << piece
+        end
       end
+
+      h
     end
-
-    h
-  end
-
-  def find_empty_square(board_x, board_y)
-    min = self.location_to_square({
-      board_x: board_x,
-      board_y: board_y,
-      x: 0,
-      y: 0,
-    })
-    max = min + 63
-    pieces = pieces_by_board[[board_x, board_y]]
-    empty_squares = (min..max).to_a - pieces.map(&:square)
-    empty_squares.sample || raise("no more empty squares on [#{board_x}, #{board_y}]")
   end
 
   # Each board is 64 consecutive indexes:
@@ -354,7 +366,6 @@ class Game < ApplicationRecord
   private
 
   def broadcast_move_steps(steps_by_board)
-    pieces_by_board = self.pieces_by_board
     self.players.each do |player|
       data = get_boards_to_broadcast(player, steps_by_board)
 
