@@ -6,7 +6,7 @@ class Move < ApplicationRecord
   validate :current_color_is_this_player, on: :create
 
   def get_intermediate_squares
-    intermediate_squares = if self.piece.kind == 'knight'
+    intermediate_squares = if self.piece.kind == KNIGHT
       [self.target_square]
     else
       get_linear_intermediate_squares(self.direction.to_sym)

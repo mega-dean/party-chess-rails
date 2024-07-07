@@ -2,7 +2,7 @@ class Piece < ApplicationRecord
   belongs_to :player
   has_many :moves
 
-  KINDS = ['knight', 'bishop', 'rook', 'queen']
+  KINDS = [KNIGHT, BISHOP, ROOK, QUEEN]
 
   validates :kind, inclusion: { in: KINDS }
 
@@ -18,10 +18,10 @@ class Piece < ApplicationRecord
   class << self
     def points(kind)
       {
-        'knight' => 1,
-        'bishop' => 2,
-        'rook' => 4,
-        'queen' => 8,
+        KNIGHT => 1,
+        BISHOP => 2,
+        ROOK => 4,
+        QUEEN => 8,
       }[kind] || raise("Piece.points: invalid kind #{kind}")
     end
 
@@ -104,15 +104,15 @@ class Piece < ApplicationRecord
 
     move_targets = game.board_hash(:hash)
 
-    if self.kind == 'knight'
+    if self.kind == KNIGHT
       set_knight_targets(move_targets, current_location)
-    elsif self.kind == 'bishop'
+    elsif self.kind == BISHOP
       move_targets[[current_location[:board_x], current_location[:board_y]]] = diagonal_targets
       set_diagonal_targets_to_adjacent_boards(move_targets, current_location)
-    elsif self.kind == 'rook'
+    elsif self.kind == ROOK
       move_targets[[current_location[:board_x], current_location[:board_y]]] = horizontal_targets
       set_horizontal_targets_to_adjacent_boards(move_targets, current_location)
-    elsif self.kind == 'queen'
+    elsif self.kind == QUEEN
       move_targets[[current_location[:board_x], current_location[:board_y]]] = diagonal_targets.merge(horizontal_targets)
       set_horizontal_targets_to_adjacent_boards(move_targets, current_location)
       set_diagonal_targets_to_adjacent_boards(move_targets, current_location)

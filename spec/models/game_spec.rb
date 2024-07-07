@@ -8,7 +8,7 @@ RSpec.describe Game do
   end
 
   specify "pieces_by_board" do
-    @player.pieces.create!(square: 0, kind: 'knight')
+    @player.pieces.create!(square: 0, kind: KNIGHT)
 
     {
       [0, 0] => 1,
@@ -19,7 +19,7 @@ RSpec.describe Game do
       expect(@game.pieces_by_board[coords].count).to eq(expected)
     end
 
-    @player.pieces.create!(square: 1, kind: 'knight')
+    @player.pieces.create!(square: 1, kind: KNIGHT)
 
     {
       [0, 0] => 2,
@@ -30,7 +30,7 @@ RSpec.describe Game do
       expect(@game.pieces_by_board[coords].count).to eq(expected)
     end
 
-    @player.pieces.create!(square: 64, kind: 'knight')
+    @player.pieces.create!(square: 64, kind: KNIGHT)
 
     {
       [0, 0] => 2,
@@ -41,7 +41,7 @@ RSpec.describe Game do
       expect(@game.pieces_by_board[coords].count).to eq(expected)
     end
 
-    @player.pieces.create!(square: 64 * 3, kind: 'knight')
+    @player.pieces.create!(square: 64 * 3, kind: KNIGHT)
 
     {
       [0, 0] => 2,
@@ -52,7 +52,7 @@ RSpec.describe Game do
       expect(@game.pieces_by_board[coords].count).to eq(expected)
     end
 
-    @player.pieces.create!(square: 64 * 2, kind: 'knight')
+    @player.pieces.create!(square: 64 * 2, kind: KNIGHT)
 
     {
       [0, 0] => 2,
@@ -129,7 +129,7 @@ RSpec.describe Game do
     end
 
     it "tracks pieces that haven't moved" do
-      rook = @player.pieces.create!(kind: 'rook', square: 73)
+      rook = @player.pieces.create!(kind: ROOK, square: 73)
       move_steps = @game.get_move_steps(@game.build_cache)[[1, 0]]
 
       expect_moves(
@@ -139,7 +139,7 @@ RSpec.describe Game do
     end
 
     it "steps through each square for linear pieces" do
-      rook = @player.pieces.create!(kind: 'rook', square: 73)
+      rook = @player.pieces.create!(kind: ROOK, square: 73)
       rook.try_move(target_square: 77, direction: :right)
       move_steps = @game.get_move_steps(@game.build_cache)[[1, 0]]
 
@@ -156,7 +156,7 @@ RSpec.describe Game do
     end
 
     it "moves knights in one step" do
-      knight = @player.pieces.create!(kind: 'knight', square: 20)
+      knight = @player.pieces.create!(kind: KNIGHT, square: 20)
       knight.try_move(target_square: 35, direction: :left1down2)
 
       expect_moves([
@@ -167,8 +167,8 @@ RSpec.describe Game do
 
     describe "bumped pieces" do
       it "bumps two pieces that have moved to the same square on the same step" do
-        bishop = @player.pieces.create!(kind: 'bishop', square: 21)
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        bishop = @player.pieces.create!(kind: BISHOP, square: 21)
+        rook = @player.pieces.create!(kind: ROOK, square: 19)
 
         rook.try_move(target_square: 51, direction: :down)
         bishop.try_move(target_square: 49, direction: :down_left)
@@ -181,8 +181,8 @@ RSpec.describe Game do
       end
 
       it "does not bump pieces that move past each other" do
-        queen = @player.pieces.create!(kind: 'queen', square: 22)
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        queen = @player.pieces.create!(kind: QUEEN, square: 22)
+        rook = @player.pieces.create!(kind: ROOK, square: 19)
 
         rook.try_move(target_square: 23, direction: :right)
         queen.try_move(target_square: 17, direction: :left)
@@ -198,8 +198,8 @@ RSpec.describe Game do
       end
 
       it "bumps a piece that arrives to a square second" do
-        queen = @player.pieces.create!(kind: 'queen', square: 22)
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        queen = @player.pieces.create!(kind: QUEEN, square: 22)
+        rook = @player.pieces.create!(kind: ROOK, square: 19)
 
         rook.try_move(target_square: 21, direction: :right)
         queen.try_move(target_square: 21, direction: :left)
@@ -212,8 +212,8 @@ RSpec.describe Game do
       end
 
       it "bumps a piece when the other piece hasn't moved" do
-        queen = @player.pieces.create!(kind: 'queen', square: 22)
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        queen = @player.pieces.create!(kind: QUEEN, square: 22)
+        rook = @player.pieces.create!(kind: ROOK, square: 19)
 
         rook.try_move(target_square: 23, direction: :right)
 
@@ -226,9 +226,9 @@ RSpec.describe Game do
       end
 
       it "chains bumps" do
-        queen = @player.pieces.create!(kind: 'queen', square: 22)
-        bishop = @player.pieces.create!(kind: 'bishop', square: 26)
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        queen = @player.pieces.create!(kind: QUEEN, square: 22)
+        bishop = @player.pieces.create!(kind: BISHOP, square: 26)
+        rook = @player.pieces.create!(kind: ROOK, square: 19)
 
         rook.try_move(target_square: 23, direction: :right)
         bishop.try_move(target_square: rook.square, direction: :up_right)
@@ -242,10 +242,10 @@ RSpec.describe Game do
       end
 
       it "chains several bumps" do
-        knight = @player.pieces.create!(kind: 'knight', square: 36)
-        queen = @player.pieces.create!(kind: 'queen', square: 21)
-        bishop = @player.pieces.create!(kind: 'bishop', square: 26)
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        knight = @player.pieces.create!(kind: KNIGHT, square: 36)
+        queen = @player.pieces.create!(kind: QUEEN, square: 21)
+        bishop = @player.pieces.create!(kind: BISHOP, square: 26)
+        rook = @player.pieces.create!(kind: ROOK, square: 19)
 
         rook.try_move(target_square: 23, direction: :right)
         bishop.try_move(target_square: rook.square, direction: :up_right)
@@ -283,10 +283,10 @@ RSpec.describe Game do
       end
 
       it "captures pieces of different color" do
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        rook = @player.pieces.create!(kind: ROOK, square: 19)
 
         other_player = @game.players.create!(is_black: false)
-        queen = other_player.pieces.create!(kind: 'queen', square: 22)
+        queen = other_player.pieces.create!(kind: QUEEN, square: 22)
 
         rook.try_move(target_square: 22, direction: :right)
 
@@ -308,11 +308,11 @@ RSpec.describe Game do
       end
 
       it "does not capture when both capturing pieces bump each other" do
-        bishop = @player.pieces.create!(kind: 'bishop', square: 43)
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        bishop = @player.pieces.create!(kind: BISHOP, square: 43)
+        rook = @player.pieces.create!(kind: ROOK, square: 19)
 
         other_player = @game.players.create!(is_black: false)
-        queen = other_player.pieces.create!(kind: 'queen', square: 22)
+        queen = other_player.pieces.create!(kind: QUEEN, square: 22)
 
         rook.try_move(target_square: 22, direction: :right)
         bishop.try_move(target_square: 22, direction: :up_right)
@@ -339,11 +339,11 @@ RSpec.describe Game do
       end
 
       it "can capture multiple pieces" do
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        rook = @player.pieces.create!(kind: ROOK, square: 19)
 
         other_player = @game.players.create!(is_black: false)
-        queen = other_player.pieces.create!(kind: 'queen', square: 22)
-        bishop = other_player.pieces.create!(kind: 'bishop', square: 20)
+        queen = other_player.pieces.create!(kind: QUEEN, square: 22)
+        bishop = other_player.pieces.create!(kind: BISHOP, square: 20)
 
         rook.try_move(target_square: 22, direction: :right)
 
@@ -364,11 +364,11 @@ RSpec.describe Game do
       end
 
       it "gives points to the capturer" do
-        rook = @player.pieces.create!(kind: 'rook', square: 19)
+        rook = @player.pieces.create!(kind: ROOK, square: 19)
 
         other_player = @game.players.create!(is_black: false)
-        queen = other_player.pieces.create!(kind: 'queen', square: 22)
-        bishop = other_player.pieces.create!(kind: 'bishop', square: 20)
+        queen = other_player.pieces.create!(kind: QUEEN, square: 22)
+        bishop = other_player.pieces.create!(kind: BISHOP, square: 20)
 
         rook.try_move(target_square: 22, direction: :right)
 
@@ -376,7 +376,7 @@ RSpec.describe Game do
 
         expect {
           @game.get_move_steps(@game.build_cache)
-        }.to change { @player.reload.points }.by(Piece.points('queen') + Piece.points('bishop'))
+        }.to change { @player.reload.points }.by(Piece.points(QUEEN) + Piece.points(BISHOP))
 
         expect(@player.reload.score).to eq(original_score)
       end
@@ -384,7 +384,7 @@ RSpec.describe Game do
 
     describe "moves to adjacent boards" do
       it "moves pieces to different boards" do
-        rook = @player.pieces.create!(kind: 'rook', square: 36)
+        rook = @player.pieces.create!(kind: ROOK, square: 36)
         rook.try_move(target_square: 96, direction: :right)
 
         move_steps_on_initial_board = @game.get_move_steps(@game.build_cache)[[0, 0]]
@@ -414,8 +414,8 @@ RSpec.describe Game do
       end
 
       it "can bump pieces that move to different boards" do
-        rook = @player.pieces.create!(kind: 'rook', square: 36)
-        knight = @player.pieces.create!(kind: 'knight', square: 96)
+        rook = @player.pieces.create!(kind: ROOK, square: 36)
+        knight = @player.pieces.create!(kind: KNIGHT, square: 96)
         rook.try_move(target_square: 96, direction: :right)
 
         move_steps_on_initial_board = @game.get_move_steps(@game.build_cache)[[0, 0]]
@@ -445,9 +445,9 @@ RSpec.describe Game do
       end
 
       it "can chain bump pieces that move to different boards" do
-        rook = @player.pieces.create!(kind: 'rook', square: 96)
-        knight = @player.pieces.create!(kind: 'knight', square: 12)
-        bishop = @player.pieces.create!(kind: 'bishop', square: 39)
+        rook = @player.pieces.create!(kind: ROOK, square: 96)
+        knight = @player.pieces.create!(kind: KNIGHT, square: 12)
+        bishop = @player.pieces.create!(kind: BISHOP, square: 39)
 
         bishop.try_move(target_square: 12, direction: :up_left)
         rook.try_move(target_square: 39, direction: :left)
@@ -480,7 +480,7 @@ RSpec.describe Game do
 
   describe "apply_move_steps" do
     it "updates piece.square for pieces that complete a move" do
-      rook = @player.pieces.create!(kind: 'rook', square: 36)
+      rook = @player.pieces.create!(kind: ROOK, square: 36)
       rook.try_move(target_square: 39, direction: :right)
 
       cache = @game.build_cache
@@ -492,8 +492,8 @@ RSpec.describe Game do
     end
 
     it "does not update piece.square when a piece is bumped" do
-      rook = @player.pieces.create!(kind: 'rook', square: 36)
-      bishop = @player.pieces.create!(kind: 'bishop', square: 37)
+      rook = @player.pieces.create!(kind: ROOK, square: 36)
+      bishop = @player.pieces.create!(kind: BISHOP, square: 37)
       rook.try_move(target_square: 39, direction: :right)
 
       cache = @game.build_cache
@@ -506,8 +506,8 @@ RSpec.describe Game do
 
     it "spawns new pieces for each move.pending_spawn_kind" do
       original_rook_square = 36
-      rook = @player.pieces.create!(kind: 'rook', square: original_rook_square)
-      rook.try_move(target_square: 39, direction: :right, spawn_kind: 'bishop')
+      rook = @player.pieces.create!(kind: ROOK, square: original_rook_square)
+      rook.try_move(target_square: 39, direction: :right, spawn_kind: BISHOP)
 
       cache = @game.build_cache
       steps = @game.get_move_steps(cache)
@@ -518,12 +518,12 @@ RSpec.describe Game do
 
       spawned_piece = Piece.last
 
-      expect(spawned_piece.kind).to eq('bishop')
+      expect(spawned_piece.kind).to eq(BISHOP)
       expect(spawned_piece.square).to eq(original_rook_square)
     end
 
     it "does not spawn new pieces when no move.pending_spawn_kind is set" do
-      rook = @player.pieces.create!(kind: 'rook', square: 36)
+      rook = @player.pieces.create!(kind: ROOK, square: 36)
       rook.try_move(target_square: 39, direction: :right)
 
       cache = @game.build_cache
@@ -546,35 +546,35 @@ RSpec.describe Game do
     end
 
     specify "pieces starting on board" do
-      rook = @player.pieces.create!(kind: 'rook', square: 36)
+      rook = @player.pieces.create!(kind: ROOK, square: 36)
       rook.try_move(target_square: 39, direction: :right)
 
       expect_broadcast_boards([[0, 0]])
     end
 
     specify "pieces ending on board" do
-      rook = @player.pieces.create!(kind: 'rook', square: 39)
+      rook = @player.pieces.create!(kind: ROOK, square: 39)
       rook.try_move(target_square: 96, direction: :right)
 
-      bishop = @player.pieces.create!(kind: 'bishop', square: 0)
+      bishop = @player.pieces.create!(kind: BISHOP, square: 0)
       bishop.try_move(target_square: 192, direction: :down_right)
 
       expect_broadcast_boards([[0, 0], [1, 0], [1, 1]])
     end
 
     specify "piece moves to board but gets bumped back" do
-      rook = @player.pieces.create!(kind: 'rook', square: 36)
+      rook = @player.pieces.create!(kind: ROOK, square: 36)
       other_player = @game.players.create!(is_black: @player.is_black)
-      knight = other_player.pieces.create!(kind: 'knight', square: 96)
+      knight = other_player.pieces.create!(kind: KNIGHT, square: 96)
       rook.try_move(target_square: 96, direction: :right)
 
       expect_broadcast_boards([[0, 0], [1, 0]])
     end
 
     specify "piece on edge of board moves to board but gets bumped back" do
-      rook = @player.pieces.create!(kind: 'rook', square: 39)
+      rook = @player.pieces.create!(kind: ROOK, square: 39)
       other_player = @game.players.create!(is_black: @player.is_black)
-      knight = other_player.pieces.create!(kind: 'knight', square: 96)
+      knight = other_player.pieces.create!(kind: KNIGHT, square: 96)
 
       rook.try_move(target_square: 96, direction: :right)
 
@@ -592,7 +592,7 @@ RSpec.describe Game do
         [1, 1],
       ].each do |board_x, board_y|
         square = @game.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
-        enemy_player.pieces.create!(kind: 'knight', square: square)
+        enemy_player.pieces.create!(kind: KNIGHT, square: square)
       end
 
       expect(@game.choose_starting_board(player: @player, count: 1)).to eq([1, 0])
@@ -610,7 +610,7 @@ RSpec.describe Game do
         first_square = @game.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
 
         pieces_to_create.times do |idx|
-          ally_player.pieces.create!(kind: 'knight', square: first_square + idx)
+          ally_player.pieces.create!(kind: KNIGHT, square: first_square + idx)
         end
       end
 
@@ -629,7 +629,7 @@ RSpec.describe Game do
         first_square = @game.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
 
         pieces_to_create.times do |idx|
-          ally_player.pieces.create!(kind: 'knight', square: first_square + idx)
+          ally_player.pieces.create!(kind: KNIGHT, square: first_square + idx)
         end
       end
 

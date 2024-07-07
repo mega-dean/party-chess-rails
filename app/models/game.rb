@@ -2,7 +2,7 @@ class Game < ApplicationRecord
   has_many :players
 
   def current_color
-    if self.current_turn.even? then 'white' else 'black' end
+    if self.current_turn.even? then WHITE else BLACK end
   end
 
   def create_player!

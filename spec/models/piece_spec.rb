@@ -36,7 +36,7 @@ RSpec.describe Piece do
 
   describe "try_move" do
     before do
-      @knight = @player.pieces.create!(kind: 'knight', square: 27)
+      @knight = @player.pieces.create!(kind: KNIGHT, square: 27)
     end
 
     it "creates a move when target location is valid" do
@@ -62,7 +62,7 @@ RSpec.describe Piece do
 
   describe "deselect" do
     before do
-      @knight = @player.pieces.create!(kind: 'knight', square: 27)
+      @knight = @player.pieces.create!(kind: KNIGHT, square: 27)
       @current_move = @knight.moves.create!(turn: @game.current_turn, target_square: 10, direction: :left1up2)
     end
 
@@ -81,7 +81,7 @@ RSpec.describe Piece do
   describe "get_target_squares" do
     describe "knight" do
       it "includes all 8 moves when in the center of the board" do
-        knight = @player.pieces.create!(kind: 'knight', square: 27)
+        knight = @player.pieces.create!(kind: KNIGHT, square: 27)
 
         expect_target_squares(knight, {
           left1up2: [[2, 1]],
@@ -96,7 +96,7 @@ RSpec.describe Piece do
       end
 
       it "trims moves when near the edge of the board" do
-        knight = @player.pieces.create!(kind: 'knight', square: 48)
+        knight = @player.pieces.create!(kind: KNIGHT, square: 48)
 
         expect_target_squares(knight, {
           right1up2: [[1, 4]],
@@ -115,7 +115,7 @@ RSpec.describe Piece do
       end
 
       it "includes moves to adjacent boards" do
-        knight = @player.pieces.create!(kind: 'knight', square: 48)
+        knight = @player.pieces.create!(kind: KNIGHT, square: 48)
 
         expect_target_squares(knight, {
           right1down2: [[1, 0]],
@@ -141,7 +141,7 @@ RSpec.describe Piece do
     end
 
     specify "bishop" do
-      bishop = @player.pieces.create!(kind: 'bishop', square: 11)
+      bishop = @player.pieces.create!(kind: BISHOP, square: 11)
 
       expect_target_squares(bishop, {
         up_left: [[2, 0]],
@@ -165,7 +165,7 @@ RSpec.describe Piece do
     end
 
     specify "rook" do
-      rook = @player.pieces.create!(kind: 'rook', square: 11)
+      rook = @player.pieces.create!(kind: ROOK, square: 11)
 
       expect_target_squares(rook, {
         up: [
@@ -202,7 +202,7 @@ RSpec.describe Piece do
     end
 
     specify "queen" do
-      queen = @player.pieces.create!(kind: 'queen', square: 45)
+      queen = @player.pieces.create!(kind: QUEEN, square: 45)
 
       expect_target_squares(queen, {
         up: [

@@ -16,8 +16,8 @@ black_player = game.players.create!(is_black: true)
 white_player = game.players.create!(is_black: false)
 puts "created #{Player.count} players"
 
-black_player.pieces.create!(kind: 'rook', square: 3)
-black_player.pieces.create!(kind: 'knight', square: (64 * 4) - 4)
-white_player.pieces.create!(kind: 'queen', square: 5)
-white_player.pieces.create!(kind: 'bishop', square: (64 * 4) - 6)
+black_player.pieces.create!(kind: ROOK, square: 3)
+black_player.pieces.create!(kind: KNIGHT, square: (64 * 4) - 4)
+white_player.pieces.create!(kind: QUEEN, square: 5)
+white_player.pieces.create!(kind: BISHOP, square: (64 * 4) - 6)
 puts "created #{Piece.count} pieces"

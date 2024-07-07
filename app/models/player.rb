@@ -17,11 +17,7 @@ class Player < ApplicationRecord
   end
 
   def color
-    if is_black
-      'black'
-    else
-      'white'
-    end
+    if is_black then BLACK else WHITE end
   end
 
   def pending_moves_by_board
