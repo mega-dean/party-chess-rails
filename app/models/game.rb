@@ -5,8 +5,33 @@ class Game < ApplicationRecord
     if self.current_turn.even? then WHITE else BLACK end
   end
 
+  def current_points
+    points = {
+      WHITE => 0,
+      BLACK => 0,
+    }
+
+    Game.includes(players: :pieces).find(self.id).players.map do |player|
+      player_points = player.pieces.map{ |piece| Piece.points(piece.kind) }.sum
+
+      points[player.color] += player_points
+    end
+
+    points
+  end
+
   def create_player!
-    self.players.create!(is_black: true, points: Player::STARTING_POINTS)
+    points = self.current_points
+
+    is_black = if points[WHITE] > points[BLACK]
+      true
+    elsif points[BLACK] > points[WHITE]
+      false
+    else
+      [true, false].sample
+    end
+
+    self.players.create!(is_black: is_black, points: Player::STARTING_POINTS)
   end
 
   def choose_starting_board(player:, count:)

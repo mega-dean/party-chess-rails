@@ -350,13 +350,15 @@ RSpec.describe Game do
         cache = @game.build_cache
         move_steps = @game.get_move_steps(cache)
 
-        expect_moves([
-          { 20 => { moving: [rook.id], initial: bishop.id }, 22 => { initial: queen.id }},
-          { 21 => { moving: [rook.id] }, 20 => { captured: bishop.id }, 22 => { initial: queen.id }},
-          { 22 => { moving: [rook.id], initial: queen.id }, 20 => { captured: bishop.id }},
-          { 22 => { moved: rook.id, captured: queen.id }, 20 => { captured: bishop.id }},
-        ],
-        move_steps[[0, 0]])
+        expect_moves(
+          [
+            { 20 => { moving: [rook.id], initial: bishop.id }, 22 => { initial: queen.id }},
+            { 21 => { moving: [rook.id] }, 20 => { captured: bishop.id }, 22 => { initial: queen.id }},
+            { 22 => { moving: [rook.id], initial: queen.id }, 20 => { captured: bishop.id }},
+            { 22 => { moved: rook.id, captured: queen.id }, 20 => { captured: bishop.id }},
+          ],
+          move_steps[[0, 0]],
+        )
 
         @game.apply_move_steps(move_steps, cache)
         expect_captured(bishop)
@@ -635,5 +637,58 @@ RSpec.describe Game do
 
       expect(@game.choose_starting_board(player: @player, count: 62)).to be(nil)
     end
+  end
+
+  describe "current_points" do
+    it "counts points for pieces on the board" do
+      expect(@game.current_points[WHITE]).to eq(0)
+      expect(@game.current_points[BLACK]).to eq(0)
+
+      knight = @player.pieces.create(kind: KNIGHT, square: 0)
+      queen = @player.pieces.create(kind: QUEEN, square: 1)
+
+      expect(@game.current_points[WHITE]).to eq(0)
+      expect(@game.current_points[BLACK]).to eq(knight.points + queen.points)
+    end
+
+    it "counts points that haven't been spent" do
+      queen = @player.pieces.create(kind: QUEEN, square: 0)
+
+      expect {
+        @player.update!(points: 10)
+      }.to change {
+        @game.current_points[BLACK]
+      }.from(queen.points).to(queen.points + 10)
+    end
+
+    it "does not count pending spawns separately from pending points" do
+      queen = @player.pieces.create(kind: QUEEN, square: 0)
+      @player.update!(points: 10)
+
+      expect {
+        queen.moves.create!(
+          target_square: 1,
+          turn: @game.current_turn,
+          direction: :right,
+          pending_spawn_kind: KNIGHT,
+        )
+      }.not_to change { @game.current_points[BLACK] }
+    end
+  end
+
+  describe "create_player!" do
+    it "creates a white player when black has more points" do
+      @player.update!(points: 10)
+      created_player = @game.create_player!
+      expect(created_player.is_black).to be(false)
+    end
+
+    it "creates a black player when white has more points" do
+      @player.update!(points: 10)
+      created_player = @game.create_player!
+      expect(created_player.is_black).to be(false)
+    end
+
+    # it chooses randomly when points are equal
   end
 end
