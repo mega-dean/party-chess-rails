@@ -17,18 +17,24 @@ class GamesController < ApplicationController
 
   def join
     @player = current_player
+    kinds = params[:chosen_kinds].split(',')
     starting_board_x, starting_board_y =
-      @player.game.choose_starting_board(player: @player, count: params[:kinds].length)
+      @player.game.choose_starting_board(player: @player, count: kinds.length)
 
-    @player.create_starting_pieces!(
-      kinds: params[:kinds],
-      starting_board_x: starting_board_x,
-      starting_board_y: starting_board_y,
-    )
+    begin
+      @player.create_starting_pieces!(
+        kinds: kinds,
+        starting_board_x: starting_board_x,
+        starting_board_y: starting_board_y,
+      )
+    rescue => e
+      flash[:error] = "Something went wrong - please try again."
+      return redirect_to(choose_party_path(params[:id]))
+    end
+
     redirect_to(game_path(params[:id]))
   end
 
-  # TMP Processing moves won't be triggered by request from frontend.
   if Rails.env.development?
     def process_moves
       game = Game.find(params[:id])

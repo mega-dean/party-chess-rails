@@ -224,3 +224,19 @@ td {
     align-items: center;
     margin-left: auto; /* right-alignment */
 }
+
+#flash-notification {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 1rem;
+}
+
+.flash-error {
+    border: 1px solid red;
+    color: rgb(120, 0, 0);
+    background: rgb(255, 220, 220);
+    text-align: center;
+    width: 60%;
+    padding: 1rem;
+}

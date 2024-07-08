@@ -9,30 +9,6 @@ export default class extends Controller {
     url: String,
   }
 
-  joinGame(event) {
-    this.postJson(event.target.dataset.url, {
-      kinds: this.chosenTargets.map((target) => target.dataset.kind),
-    }).then((response) => {
-      if (response.redirected) {
-        window.location.href = response.url;
-      }
-    });
-  }
-
-  // CLEANUP duplicated from move_target_controller
-  postJson(url, body) {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-    return fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': csrfToken,
-      },
-      body: JSON.stringify(body),
-    });
-  }
-
   bankValueChanged() {
     this.bankTarget.innerHTML = this.bankValue;
 
@@ -86,6 +62,9 @@ export default class extends Controller {
       container.appendChild(removeButton);
 
       document.$('#current-party').appendChild(container);
+
+      let hiddenField = document.$('#js-chosen-kinds');
+      hiddenField.value = this.chosenTargets.map((target) => target.dataset.kind).join();
 
       this.bankValue -= cost;
     }

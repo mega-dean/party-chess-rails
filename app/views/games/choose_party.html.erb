@@ -1,3 +1,12 @@
+<!-- CLEANUP this is currently the only page that can have flash messages, but this should probably be on the layout -->
+<div id="flash-notification">
+  <% if flash[:error] %>
+    <div class="flash-error">
+      <%= flash[:error] %>
+    </div>
+  <% end %>
+</div>
+
 <% points = @player.get_points[:bank] %>
 <div id="choose-party"
      data-controller="choose-party"
@@ -33,11 +42,8 @@
     <div id="current-party"></div>
   </div>
 
-  <button id="join-button"
-          data-action="click->choose-party#joinGame"
-          data-url="<%= join_game_path(@player.game) %>"
-          disabled
-  >
+  <%= button_to({ action: "join" }, { id: 'join-button', disabled: true }) do %>
     Join
-  </button>
+    <%= hidden_field_tag :chosen_kinds, "", id: "js-chosen-kinds" %>
+  <% end %>
 </div>

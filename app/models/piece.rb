@@ -16,20 +16,20 @@ class Piece < ApplicationRecord
   Stage = Struct.new(:kind, :target_square, :original_board, :is_array, keyword_init: true)
 
   class << self
-    def points(kind)
+    def points(kind, error_fn = "points")
       {
         KNIGHT => 1,
         BISHOP => 2,
         ROOK => 4,
         QUEEN => 8,
-      }[kind] || raise("Piece.points: invalid kind #{kind}")
+      }[kind] || raise("Piece.#{error_fn}: invalid kind #{kind}")
     end
 
     # Cost is greater than points so that every time a capture happens, the total number of points in the game
-    # decreases. If the cost was the same as the points, then trading pieces would be inconsequential since players could
-    # just spawn a new piece immediately.
+    # decreases. If the cost was the same as the points, then trading pieces would be inconsequential since players
+    # could just spawn a new piece immediately.
     def cost(kind)
-      points(kind) + 1
+      points(kind, "cost") + 1
     end
 
     if Rails.env.development?

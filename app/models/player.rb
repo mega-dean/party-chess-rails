@@ -1,13 +1,21 @@
 class Player < ApplicationRecord
   STARTING_POINTS = 12
 
+  class TooManyStartingPointsError < StandardError; end
+
   belongs_to :game
   has_many :pieces
 
   def create_starting_pieces!(kinds:, starting_board_x:, starting_board_y:)
+    points = kinds.map { |kind| Piece.cost(kind) }.sum
+
+    if points > STARTING_POINTS
+      raise TooManyStartingPointsError
+    end
+
     # CLEANUP duplicated in choose_starting_board
     pieces = self.game.pieces_by_board[[starting_board_x, starting_board_y]]
-    first_square = self.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
+    first_square = self.game.location_to_square({ board_x: starting_board_x, board_y: starting_board_y, x: 0, y: 0 })
     empty_squares = (first_square..first_square+63).to_a - pieces.map(&:square)
     starting_squares = empty_squares.shuffle
 
