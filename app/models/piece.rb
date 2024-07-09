@@ -4,6 +4,8 @@ class Piece < ApplicationRecord
 
   KINDS = [KNIGHT, BISHOP, ROOK, QUEEN]
 
+  class InvalidKind < StandardError; end
+
   validates :kind, inclusion: { in: KINDS }
 
   # This represents a single step in a move for a piece.
@@ -22,7 +24,7 @@ class Piece < ApplicationRecord
         BISHOP => 2,
         ROOK => 4,
         QUEEN => 8,
-      }[kind] || raise("Piece.#{error_fn}: invalid kind #{kind}")
+      }[kind] || raise(InvalidKind.new("Piece.#{error_fn}: #{kind}"))
     end
 
     # Cost is greater than points so that every time a capture happens, the total number of points in the game
@@ -81,10 +83,7 @@ class Piece < ApplicationRecord
         )
       end
 
-      broadcast_replace_to "player_#{self.player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
-        player: self.player,
-        refresh_header: true,
-      }
+      self.player.broadcast_boards
     end
   end
 
@@ -92,10 +91,7 @@ class Piece < ApplicationRecord
     if !self.player.game.processing_moves
       self.current_move&.destroy!
 
-      broadcast_replace_to "player_#{self.player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
-        player: self.player,
-        refresh_header: true,
-      }
+      self.player.broadcast_boards
     end
   end
 

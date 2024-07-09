@@ -19,9 +19,7 @@ export default class extends Controller {
   }
 
   selectPiece() {
-    for (const moveTarget of document.$$('.move-target')) {
-      moveTarget.parentNode.removeChild(moveTarget);
-    }
+    [...document.$$('.move-target')].forEach((node) => node.remove());
 
     if (utils.grid().dataset.movesAllowedNow) {
       if (this.isSelectedValue) {

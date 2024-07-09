@@ -8,60 +8,23 @@ RSpec.describe Game do
   end
 
   specify "pieces_by_board" do
-    @player.pieces.create!(square: 0, kind: KNIGHT)
+    knight_1 = @player.pieces.create!(square: 64 * 0, kind: KNIGHT)
+    knight_2 = @player.pieces.create!(square: (64 * 0) + 1, kind: KNIGHT)
+    bishop = @player.pieces.create!(square: 64 * 1, kind: BISHOP)
+    rook = @player.pieces.create!(square: 64 * 2, kind: ROOK)
+    queen = @player.pieces.create!(square: 64 * 3, kind: QUEEN)
 
-    {
-      [0, 0] => 1,
-      [1, 0] => 0,
-      [0, 1] => 0,
-      [1, 1] => 0,
-    }.each do |coords, expected|
-      expect(@game.pieces_by_board[coords].count).to eq(expected)
-    end
+    expect(@game.pieces_by_board[[0, 0]].count).to eq(2)
+    expect(@game.pieces_by_board[[0, 0]].map(&:id).sort).to eq([knight_1.id, knight_2.id])
 
-    @player.pieces.create!(square: 1, kind: KNIGHT)
+    expect(@game.pieces_by_board[[1, 0]].count).to eq(1)
+    expect(@game.pieces_by_board[[1, 0]].map(&:id).sort).to eq([bishop.id])
 
-    {
-      [0, 0] => 2,
-      [1, 0] => 0,
-      [0, 1] => 0,
-      [1, 1] => 0,
-    }.each do |coords, expected|
-      expect(@game.pieces_by_board[coords].count).to eq(expected)
-    end
+    expect(@game.pieces_by_board[[0, 1]].count).to eq(1)
+    expect(@game.pieces_by_board[[0, 1]].map(&:id).sort).to eq([rook.id])
 
-    @player.pieces.create!(square: 64, kind: KNIGHT)
-
-    {
-      [0, 0] => 2,
-      [1, 0] => 1,
-      [0, 1] => 0,
-      [1, 1] => 0,
-    }.each do |coords, expected|
-      expect(@game.pieces_by_board[coords].count).to eq(expected)
-    end
-
-    @player.pieces.create!(square: 64 * 3, kind: KNIGHT)
-
-    {
-      [0, 0] => 2,
-      [1, 0] => 1,
-      [0, 1] => 0,
-      [1, 1] => 1,
-    }.each do |coords, expected|
-      expect(@game.pieces_by_board[coords].count).to eq(expected)
-    end
-
-    @player.pieces.create!(square: 64 * 2, kind: KNIGHT)
-
-    {
-      [0, 0] => 2,
-      [1, 0] => 1,
-      [0, 1] => 1,
-      [1, 1] => 1,
-    }.each do |coords, expected|
-      expect(@game.pieces_by_board[coords].count).to eq(expected)
-    end
+    expect(@game.pieces_by_board[[1, 1]].count).to eq(1)
+    expect(@game.pieces_by_board[[1, 1]].map(&:id).sort).to eq([queen.id])
   end
 
   specify "location_to_square" do
@@ -609,10 +572,8 @@ RSpec.describe Game do
         [1, 0, 3],
         [1, 1, 4],
       ].each do |board_x, board_y, pieces_to_create|
-        first_square = @game.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
-
         pieces_to_create.times do |idx|
-          ally_player.pieces.create!(kind: KNIGHT, square: first_square + idx)
+          ally_player.pieces.create!(kind: KNIGHT, square: @game.first_square(board_x, board_y) + idx)
         end
       end
 
@@ -628,10 +589,8 @@ RSpec.describe Game do
         [1, 0, 3],
         [1, 1, 4],
       ].each do |board_x, board_y, pieces_to_create|
-        first_square = @game.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
-
         pieces_to_create.times do |idx|
-          ally_player.pieces.create!(kind: KNIGHT, square: first_square + idx)
+          ally_player.pieces.create!(kind: KNIGHT, square: @game.first_square(board_x, board_y) + idx)
         end
       end
 
@@ -648,7 +607,7 @@ RSpec.describe Game do
       queen = @player.pieces.create(kind: QUEEN, square: 1)
 
       expect(@game.current_points[WHITE]).to eq(0)
-      expect(@game.current_points[BLACK]).to eq(knight.points + queen.points)
+      expect(@game.current_points[BLACK]).to eq(knight.cost + queen.cost)
     end
 
     it "counts points that haven't been spent" do
@@ -658,7 +617,7 @@ RSpec.describe Game do
         @player.update!(points: 10)
       }.to change {
         @game.current_points[BLACK]
-      }.from(queen.points).to(queen.points + 10)
+      }.from(queen.cost).to(queen.cost + 10)
     end
 
     it "does not count pending spawns separately from pending points" do

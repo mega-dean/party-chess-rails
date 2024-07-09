@@ -23,6 +23,7 @@ export default class extends Controller {
 
   setRedLight() {
     this.lightColor('red');
+    [...document.$$('.move-target')].forEach((node) => node.remove());
   }
 
   lightColor(color) {

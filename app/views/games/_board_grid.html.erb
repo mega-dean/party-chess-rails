@@ -1,7 +1,6 @@
 <%
 move_targets ||= player.game.board_hash(:hash)
 selected_piece ||= nil
-refresh_header ||= nil
 currently_moving = player.game.current_color
 # Using an empty string because js checks this value, so it has to evaluate to `false`.
 moves_allowed = if player.color == currently_moving then 'yes' else '' end
@@ -15,13 +14,8 @@ pending_moves = player.pending_moves_by_board
      data-boards-wide='<%= player.game.boards_wide %>'
      data-moves-allowed-now='<%= moves_allowed %>'
 >
-  <% if refresh_header %>
-    <%= turbo_stream.replace(
-      "header",
-      render(partial: "games/board_header", locals: { player: player }),
-    )
-    %>
-  <% end %>
+  <%= turbo_stream.replace("header", render(partial: "games/board_header", locals: { player: player })) %>
+
   <% player.game.boards_tall.times do |board_y| %>
     <div class='board-row'>
       <% player.game.boards_wide.times do |board_x| %>

@@ -1,10 +1,11 @@
 class Player < ApplicationRecord
+  belongs_to :game
+  has_many :pieces
+
   STARTING_POINTS = 12
 
   class TooManyStartingPointsError < StandardError; end
-
-  belongs_to :game
-  has_many :pieces
+  class NotEnoughEmptySquaresError < StandardError; end
 
   def create_starting_pieces!(kinds:, starting_board_x:, starting_board_y:)
     points = kinds.map { |kind| Piece.cost(kind) }.sum
@@ -13,14 +14,15 @@ class Player < ApplicationRecord
       raise TooManyStartingPointsError
     end
 
-    # CLEANUP duplicated in choose_starting_board
-    pieces = self.game.pieces_by_board[[starting_board_x, starting_board_y]]
-    first_square = self.game.location_to_square({ board_x: starting_board_x, board_y: starting_board_y, x: 0, y: 0 })
-    empty_squares = (first_square..first_square+63).to_a - pieces.map(&:square)
+    empty_squares = self.game.empty_squares(starting_board_x, starting_board_y)
     starting_squares = empty_squares.shuffle
 
+    if kinds.length > empty_squares.length
+      raise NotEnoughEmptySquaresError
+    end
+
     kinds.each.with_index do |kind, idx|
-      self.pieces.create!(kind: kind, square: starting_squares[idx])
+      spawn_piece(kind: kind, square: starting_squares[idx])
     end
   end
 
@@ -49,7 +51,17 @@ class Player < ApplicationRecord
       score: self.score + Piece.points(kind),
     )
     self.pieces.create!(kind: kind, square: square)
-    self.game.broadcast_boards(self)
+  end
+
+  def broadcast_boards
+    broadcast_replace_to("player_#{self.id}_game_board",
+      target: 'board-grid',
+      # template: "games/show",
+      partial: "games/board_grid",
+      locals: {
+        player: self,
+      },
+    )
   end
 
   def get_points
@@ -59,7 +71,7 @@ class Player < ApplicationRecord
     {
       bank: self.points - pending_points,
       pending: pending_points,
-      on_board: self.pieces.map(&:points).sum,
+      on_board: self.pieces.map(&:cost).sum,
     }
   end
 end

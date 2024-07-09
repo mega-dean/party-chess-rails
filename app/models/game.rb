@@ -12,9 +12,7 @@ class Game < ApplicationRecord
     }
 
     Game.includes(players: :pieces).find(self.id).players.map do |player|
-      player_points = player.pieces.map{ |piece| Piece.points(piece.kind) }.sum
-
-      points[player.color] += player_points
+      points[player.color] += player.get_points.values.sum
     end
 
     points
@@ -34,6 +32,16 @@ class Game < ApplicationRecord
     self.players.create!(is_black: is_black, points: Player::STARTING_POINTS)
   end
 
+  def first_square(board_x, board_y)
+    self.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
+  end
+
+  def empty_squares(board_x, board_y, pieces: nil)
+    pieces ||= self.pieces_by_board[[board_x, board_y]]
+    first_square = self.first_square(board_x, board_y)
+    (first_square...first_square + 64).to_a - pieces.map(&:square)
+  end
+
   def choose_starting_board(player:, count:)
     coords = []
     self.boards_tall.times do |board_y|
@@ -45,8 +53,7 @@ class Game < ApplicationRecord
     coords.shuffle.each do |board_x, board_y|
       pieces = self.pieces_by_board[[board_x, board_y]]
       if pieces.all? { |piece| piece.player.color == player.color }
-        first_square = self.location_to_square({ board_x: board_x, board_y: board_y, x: 0, y: 0 })
-        empty_squares = (first_square...first_square + 64).to_a - pieces.map(&:square)
+        empty_squares = self.empty_squares(board_x, board_y, pieces: pieces)
 
         if empty_squares.length > count
           return [board_x, board_y]
@@ -337,14 +344,7 @@ class Game < ApplicationRecord
     # This is updated here instead of in the ProcessMovesJob because the job runs before the piece moves are animated,
     # and that time should be considered part of the previous turn.
     self.update!(last_turn_completed_at: Time.now.utc)
-    self.broadcast_boards(player)
-  end
-
-  def broadcast_boards(player)
-    broadcast_replace_to "player_#{player.id}_game_board", target: 'board-grid', partial: "games/board_grid", locals: {
-      player: player,
-      refresh_header: true,
-    }
+    player.broadcast_boards
   end
 
   def get_boards_to_broadcast(player, steps_by_board)
