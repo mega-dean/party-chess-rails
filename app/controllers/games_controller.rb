@@ -1,18 +1,16 @@
 class GamesController < ApplicationController
   before_action :require_current_player, except: [:index]
-
-  def require_current_player
-    if current_player.nil?
-      redirect_to :root
-    end
-  end
+  before_action :require_choosing_party_status, only: [:choose_party, :join]
 
   def index
     if @player = current_player
-      if @player.status == DEAD
+      path = if @player.status == CHOOSING_PARTY
+        choose_party_path(@player.game.id)
       else
-        status_redirect(@player)
+        game_path(@player.game.id)
       end
+
+      redirect_to(path)
     end
 
     @games = Game.all
@@ -23,44 +21,36 @@ class GamesController < ApplicationController
 
     if @player.game.id != params[:id].to_i
       redirect_to(game_path(@player.game.id))
-    elsif ![JOINING, PLAYING].include?(@player.status)
-      status_redirect(@player)
+    elsif @player.status == CHOOSING_PARTY
+      redirect_to choose_party_path(@player.game.id)
     end
   end
 
   def choose_party
     @player = current_player
-
-    if @player.status != CHOOSING_PARTY
-      return status_redirect(@player)
-    end
   end
 
   def join
     @player = current_player
 
-    if @player.status != CHOOSING_PARTY
-      return status_redirect(@player)
-    else
-      kinds = params[:chosen_kinds].split(',')
-      starting_board_x, starting_board_y =
-        @player.game.choose_starting_board(player: @player, count: kinds.length)
+    kinds = params[:chosen_kinds].split(',')
+    starting_board_x, starting_board_y =
+      @player.game.choose_starting_board(player: @player, count: kinds.length)
 
-      begin
-        @player.create_starting_pieces!(
-          kinds: kinds,
-          starting_board_x: starting_board_x,
-          starting_board_y: starting_board_y,
-        )
-      rescue => e
-        flash[:error] = "Something went wrong - please try again."
-        return redirect_to(choose_party_path(@player.game.id))
-      end
-
-      @player.update!(status: JOINING)
-
-      redirect_to(game_path(@player.game.id))
+    begin
+      @player.create_starting_pieces!(
+        kinds: kinds,
+        starting_board_x: starting_board_x,
+        starting_board_y: starting_board_y,
+      )
+    rescue => e
+      flash[:error] = "Something went wrong - please try again."
+      return redirect_to(choose_party_path(@player.game.id))
     end
+
+    @player.update!(status: JOINING)
+
+    redirect_to(game_path(@player.game.id))
   end
 
   # TODO Maybe don't call this "refresh" since it doesn't refresh the browser page.
@@ -91,18 +81,15 @@ class GamesController < ApplicationController
 
   private
 
-  def status_redirect(player)
-    path = case player.status
-    when DEAD
-      :root
-    when CHOOSING_PARTY
-      choose_party_path(player.game.id)
-    when JOINING
-      game_path(player.game.id)
-    when PLAYING
-      game_path(player.game.id)
+  def require_current_player
+    if current_player.nil?
+      redirect_to :root
     end
+  end
 
-    redirect_to(path)
+  def require_choosing_party_status
+    if current_player.status != CHOOSING_PARTY
+      redirect_to game_path(current_player.game.id)
+    end
   end
 end

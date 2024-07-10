@@ -63,7 +63,6 @@ class Player < ApplicationRecord
   def broadcast_boards
     broadcast_replace_to("player_#{self.id}_game_board",
       target: 'board-grid',
-      # template: "games/show",
       partial: "games/board_grid",
       locals: {
         player: self,

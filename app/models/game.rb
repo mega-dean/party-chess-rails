@@ -386,6 +386,15 @@ class Game < ApplicationRecord
     end
 
     Piece.where(id: piece_ids_to_destroy).destroy_all
+    pieces_to_destroy = Piece.includes(:player).where(id: piece_ids_to_destroy)
+    pieces_to_destroy.map(&:player).uniq.each do |player|
+      killing_all_pieces = (player.pieces.map(&:id) - piece_ids_to_destroy).empty?
+
+      if killing_all_pieces
+        player.update!(status: DEAD)
+      end
+    end
+    pieces_to_destroy.destroy_all
   end
 
   private

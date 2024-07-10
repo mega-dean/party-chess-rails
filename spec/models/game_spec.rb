@@ -498,6 +498,39 @@ RSpec.describe Game do
         @game.apply_move_steps(steps, cache)
       }.not_to change { @player.reload.pieces.count }
     end
+
+    it "updates a player to DEAD when all their pieces are captured" do
+      rook = @player.pieces.create!(kind: ROOK, square: 19)
+
+      other_player = @game.players.create!(is_black: false, status: PLAYING)
+      queen = other_player.pieces.create!(kind: QUEEN, square: 22)
+
+      rook.try_move(target_square: 22, direction: :right)
+
+      cache = @game.build_cache
+      steps = @game.get_move_steps(cache)
+
+      expect {
+        @game.apply_move_steps(steps, cache)
+      }.to change { other_player.reload.status }.from(PLAYING).to(DEAD)
+    end
+
+    it "does not update status when a player still has pieces alive" do
+      rook = @player.pieces.create!(kind: ROOK, square: 19)
+
+      other_player = @game.players.create!(is_black: false, status: PLAYING)
+      queen = other_player.pieces.create!(kind: QUEEN, square: 22)
+      bishop = other_player.pieces.create!(kind: QUEEN, square: 50)
+
+      rook.try_move(target_square: 22, direction: :right)
+
+      cache = @game.build_cache
+      steps = @game.get_move_steps(cache)
+
+      expect {
+        @game.apply_move_steps(steps, cache)
+      }.not_to change { other_player.reload.status }
+    end
   end
 
   describe "get_boards_to_broadcast" do

@@ -1,0 +1,14 @@
+<div id="game-over">
+  <div>
+    Game Over
+  </div>
+
+  <div id="game-over-stats">
+    <div>Final Score: <%= player.score %></div>
+  </div>
+
+  <div id="quit-button">
+    <%= button_to("Quit game", sessions_destroy_path, { method: :delete }) %>
+  </div>
+</div>
+
