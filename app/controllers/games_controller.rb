@@ -1,9 +1,17 @@
 class GamesController < ApplicationController
+  before_action :require_current_player, except: [:index]
+
+  def require_current_player
+    if current_player.nil?
+      redirect_to :root
+    end
+  end
+
   def index
     if @player = current_player
       if @player.status == DEAD
       else
-        redirect_to(game_path(@player.game.id))
+        status_redirect(@player)
       end
     end
 
@@ -11,16 +19,12 @@ class GamesController < ApplicationController
   end
 
   def show
-    if current_player.nil?
-      redirect_to :root
-    else
-      @player = current_player
+    @player = current_player
 
-      if @player.game.id != params[:id].to_i
-        redirect_to(game_path(@player.game.id))
-      elsif ![JOINING, PLAYING].include?(@player.status)
-        status_redirect(@player)
-      end
+    if @player.game.id != params[:id].to_i
+      redirect_to(game_path(@player.game.id))
+    elsif ![JOINING, PLAYING].include?(@player.status)
+      status_redirect(@player)
     end
   end
 
