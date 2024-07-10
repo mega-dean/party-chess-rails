@@ -1,19 +1,18 @@
 <%= link_to("back", games_path) %>
 
 <div id="content-container">
-  <h1>Game <%= @player.game.id %></h1>
+  <% if Rails.env.development? %>
+    <h1>Game <%= @player.game.id %></h1>
 
-  <h4>Playing as <%= @player.id %></h4>
+    <h4>Playing as <%= @player.id %></h4>
 
-  <div>
-    <%= button_to("quit", sessions_destroy_path, { method: :delete }) %>
-  </div>
-  <div>
-    <%= button_to("process moves", process_moves_path(id: @player.game.id), { method: :get }) %>
-  </div>
-  <div>
-    <%= button_to("stop processing moves", stop_processing_moves_path(id: @player.game.id), { method: :get }) %>
-  </div>
+    <div>
+      <%= button_to("process moves", process_moves_path(id: @player.game.id), { method: :get }) %>
+    </div>
+    <div>
+      <%= button_to("stop processing moves", stop_processing_moves_path(id: @player.game.id), { method: :get }) %>
+    </div>
+  <% end %>
 
   <%= turbo_stream_from("player_#{@player.id}_moves") %>
   <%= render partial: "games/moves", locals: { data: nil, player: @player } %>

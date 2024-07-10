@@ -22,13 +22,6 @@ green_light_timeout = green_seconds_remaining * 1000
        data-controller="spawn-piece"
   >
     <% points = player.get_points %>
-    <div id="points">
-      <div>Bank: <%= points[:bank] %></div>
-      <div>Pending: <%= points[:pending] %></div>
-      <div>On board: <%= points[:on_board] %></div>
-      <div style='border-top: 1px solid black'>Total: <%= points.values.sum %></div>
-    </div>
-
     <% Piece::KINDS.each do |kind| %>
       <% affordable = points[:bank] >= Piece.cost(kind) %>
       <div class="spawn-piece-button-container <%= if affordable then 'affordable' else 'not-affordable' end  %>">
@@ -44,6 +37,16 @@ green_light_timeout = green_seconds_remaining * 1000
         <div class="piece-cost"><%= Piece.cost(kind) %></div>
       </div>
     <% end %>
+
+    <div id="points">
+      <div>Bank: <%= points[:bank] %></div>
+      <div>Pending: <%= points[:pending] %></div>
+      <div>On board: <%= points[:on_board] %></div>
+      <div style='border-top: 1px solid black'>Total: <%= points.values.sum %></div>
+    </div>
   </div>
   <div id="score">Score: <%= player.score %></div>
+  <div id="quit-button">
+    <%= button_to("Quit game", sessions_destroy_path, { method: :delete }) %>
+  </div>
 </div>
