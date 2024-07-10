@@ -13,6 +13,11 @@ export default class extends Controller {
         if (moves.captured) {
           document.$(`#piece-${moves.captured}`)?.remove();
         }
+
+        if (moves.spawned) {
+          this.spawnPieceAt(targetSquare, moves.spawned);
+        }
+
         let movedPieces = (moves.moving || []).concat(moves.bumped || []);
         movedPieces.forEach((pieceId) => {
           this.movePieceTo(pieceId, parseInt(targetSquare));
@@ -24,25 +29,67 @@ export default class extends Controller {
     utils.grid().removeAttribute('data-moves-allowed-now');
   }
 
+  spawnPieceAt(targetSquare, kind) {
+    const img = document.createElement("img");
+
+    const findSrc = (kind) => {
+      const img = [...document.getElementsByTagName("img")].find((img) => {
+        return img.dataset.kind === kind;
+      });
+
+      return img?.src;
+    };
+
+    img.src = findSrc(kind);
+    img.classList.add("piece");
+
+    const container = document.createElement("div");
+    container.classList.add('piece-container');
+    container.appendChild(img);
+
+    const destBoard = this.getDestBoard(targetSquare);
+    console.log(`spawning ${kind} at ${targetSquare} on board ${destBoard.x}, ${destBoard.y}`);
+
+    const translate = this.getTranslate(targetSquare, destBoard, destBoard);
+    container.style.transform = translate;
+
+    document.$(`#board-${destBoard.x}-${destBoard.y}`).appendChild(container);
+  }
+
   movePieceTo(id, dest) {
     const piece = document.$(`#piece-${id}`);
-    const relativeDestX = dest % 8;
-    const relativeDestY = Math.floor((dest % 64) / 8);
 
-    // TODO This is duplicated in application_controller.rb.
-    const squareRem = 4;
-    const paddingRem = 0.6;
-    const boardSize = (8 * squareRem) + (2 * paddingRem);
+    const srcBoard = {
+      x: parseInt(piece.dataset.pieceBoardXValue),
+      y: parseInt(piece.dataset.pieceBoardYValue),
+    };
+    const destBoard = this.getDestBoard(dest);
+    const translate = this.getTranslate(dest, srcBoard, destBoard);
 
-    const destBoardIdx = Math.floor(dest / 64);
+    piece.style.transform = translate;
+  }
+
+  getDestBoard(destSquare) {
+    const destBoardIdx = Math.floor(destSquare / 64);
     const destBoardX = destBoardIdx % utils.boardsWide();
     const destBoardY = Math.floor(destBoardIdx / utils.boardsWide());
-    const boardXOffset = (destBoardX - parseInt(piece.dataset.pieceBoardXValue)) * boardSize;
-    const boardYOffset = (destBoardY - parseInt(piece.dataset.pieceBoardYValue)) * boardSize;
+
+    return { x: destBoardX, y: destBoardY };
+  }
+
+  getTranslate(destSquare, srcBoard, destBoard) {
+    const relativeDestX = destSquare % 8;
+    const relativeDestY = Math.floor((destSquare % 64) / 8);
+    const squareRem = 4;
+    const paddingRem = 0.6;
+
+    const boardSize = (8 * squareRem) + (2 * paddingRem);
+    const boardXOffset = (destBoard.x - parseInt(srcBoard.x)) * boardSize;
+    const boardYOffset = (destBoard.y - parseInt(srcBoard.y)) * boardSize;
 
     const x = boardXOffset + (squareRem * relativeDestX) + paddingRem;
     const y = boardYOffset + (squareRem * relativeDestY) + paddingRem;
 
-    piece.style.transform = `translate(${x}rem, ${y}rem)`;
+    return `translate(${x}rem, ${y}rem)`;
   }
 };

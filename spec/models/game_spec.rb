@@ -1,6 +1,35 @@
 require "rails_helper"
 
 RSpec.describe Game do
+
+  def sort_values(h)
+    h.each do |k, sub_h|
+      sub_h.each do |sub_k, v|
+        if v.is_a?(Array)
+          sub_h[sub_k] = v.sort
+        end
+      end
+    end
+  end
+
+  def expect_moves(expected, move_steps = nil)
+    move_steps ||= @game.get_move_steps(@game.build_cache)[[0, 0]]
+
+    expected.each.with_index do |step, idx|
+      sorted_move_step = sort_values(move_steps[idx])
+      sorted_step = sort_values(step)
+
+      expect(sorted_move_step).to eq(sorted_step)
+    end
+
+    remaining_steps = Move::INTERMEDIATE_SQUARES_PER_TURN - expected.length
+    final_step = expected.last
+
+    remaining_steps.times do |idx|
+      expect(move_steps[expected.length + idx]).to eq(final_step)
+    end
+  end
+
   before do
     @game = Game.create(boards_tall: 2, boards_wide: 2, last_turn_completed_at: Time.now.utc, current_turn: 1)
     @big_game = Game.create(boards_tall: 10, boards_wide: 10, last_turn_completed_at: Time.now.utc, current_turn: 1)
@@ -63,34 +92,6 @@ RSpec.describe Game do
   end
 
   describe "get_move_steps" do
-    def sort_values(h)
-      h.each do |k, sub_h|
-        sub_h.each do |sub_k, v|
-          if v.is_a?(Array)
-            sub_h[sub_k] = v.sort
-          end
-        end
-      end
-    end
-
-    def expect_moves(expected, move_steps = nil)
-      move_steps ||= @game.get_move_steps(@game.build_cache)[[0, 0]]
-
-      expected.each.with_index do |step, idx|
-        sorted_move_step = sort_values(move_steps[idx])
-        sorted_step = sort_values(step)
-
-        expect(sorted_move_step).to eq(sorted_step)
-      end
-
-      remaining_steps = Move::INTERMEDIATE_SQUARES_PER_TURN - expected.length
-      final_step = expected.last
-
-      remaining_steps.times do |idx|
-        expect(move_steps[expected.length + idx]).to eq(final_step)
-      end
-    end
-
     it "tracks pieces that haven't moved" do
       rook = @player.pieces.create!(kind: ROOK, square: 73)
       move_steps = @game.get_move_steps(@game.build_cache)[[1, 0]]
@@ -485,6 +486,28 @@ RSpec.describe Game do
 
       expect(spawned_piece.kind).to eq(BISHOP)
       expect(spawned_piece.square).to eq(original_rook_square)
+    end
+
+    it "adds spawned pieces to the first move_step" do
+      original_rook_square = 36
+      rook = @player.pieces.create!(kind: ROOK, square: original_rook_square)
+      rook.try_move(target_square: 39, direction: :right, spawn_kind: BISHOP)
+
+      cache = @game.build_cache
+      steps = @game.get_move_steps(cache)
+
+      @game.apply_move_steps(steps, cache)
+      spawned_piece = Piece.last
+
+      expect_moves(
+        [
+          { 37 => { moving: [rook.id] }, 36 => { spawned: spawned_piece.kind }},
+          { 38 => { moving: [rook.id] } },
+          { 39 => { moving: [rook.id] } },
+          { 39 => { moved: rook.id } },
+        ],
+        steps[[0, 0]],
+      )
     end
 
     it "does not spawn new pieces when no move.pending_spawn_kind is set" do

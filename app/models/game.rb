@@ -199,7 +199,6 @@ class Game < ApplicationRecord
           current_square = intermediate_squares[idx]
           previous_square = idx > 0 && intermediate_squares[idx - 1]
           stage.target_square = current_square
-          # binding.pry
           previous_square = if idx == 0
             piece.square
           else
@@ -378,7 +377,8 @@ class Game < ApplicationRecord
           piece = cached[:piece]
 
           if move.pending_spawn_kind
-            piece.player.spawn_piece(square: piece.square, kind: move.pending_spawn_kind)
+            spawned = piece.player.spawn_piece(square: piece.square, kind: move.pending_spawn_kind)
+            steps.first[piece.square] = { spawned: spawned.kind }
           end
           piece.update!(square: target_square)
         end
