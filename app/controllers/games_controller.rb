@@ -55,7 +55,7 @@ class GamesController < ApplicationController
 
   # TODO Maybe don't call this "refresh" since it doesn't refresh the browser page.
   def refresh
-    game = Game.find(params[:id])
+    game = Game.find(params[:game_id])
     player = game.players.find(params[:player_id])
 
     game.broadcast_refresh(player)

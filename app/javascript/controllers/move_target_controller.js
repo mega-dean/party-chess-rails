@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { utils } from "./utils"
 
 export default class extends Controller {
   static values = {
@@ -18,7 +19,7 @@ export default class extends Controller {
     // in js, `-1 % 8 === -1`.
     const adjust = (value) => ((value + 8) % 8);
 
-    this.postJson('/moves', {
+    utils.postJson('/moves', {
       piece_id: this.pieceIdValue,
       x: adjust(this.xValue),
       y: adjust(this.yValue),
@@ -28,18 +29,4 @@ export default class extends Controller {
       spawn_kind: spawnKind,
     });
   }
-
-  postJson(url, body) {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': csrfToken,
-      },
-      body: JSON.stringify(body),
-    });
-  }
-
 };

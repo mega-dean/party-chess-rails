@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { utils } from "./utils"
 
 export default class extends Controller {
   static values = {
@@ -11,7 +12,10 @@ export default class extends Controller {
     this.dispatch("setRedLight");
 
     new Promise((resolve) => setTimeout(resolve, this.waitTimeValue)).then(() => {
-      fetch(`/games/${this.gameIdValue}/refresh/${this.playerIdValue}`);
+      utils.postJson("/games/refresh", {
+        game_id: this.gameIdValue,
+        player_id: this.playerIdValue,
+      });
     });
   }
 }
