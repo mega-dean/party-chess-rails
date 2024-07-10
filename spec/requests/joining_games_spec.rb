@@ -73,6 +73,18 @@ RSpec.describe "Joining games", type: :request do
           expect(@player.pieces.count).to eq(0)
         end
       end
+
+      context "trying to join a game with no piece kinds" do
+        it "redirects back to /choose-party" do
+          post join_game_path(@game.id), params: {
+            chosen_kinds: "",
+          }
+
+          expect(response).to redirect_to(choose_party_path(@game.id))
+          expect(@player.reload.status).to eq(CHOOSING_PARTY)
+          expect(@player.pieces.count).to eq(0)
+        end
+      end
     end
 
     it "redirects JOINING players to the game page" do

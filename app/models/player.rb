@@ -6,6 +6,7 @@ class Player < ApplicationRecord
 
   class TooManyStartingPointsError < StandardError; end
   class NotEnoughEmptySquaresError < StandardError; end
+  class EmptyKindsError < StandardError; end
 
   STATUSES = [CHOOSING_PARTY, JOINING, PLAYING, DEAD]
 
@@ -21,7 +22,9 @@ class Player < ApplicationRecord
     empty_squares = self.game.empty_squares(starting_board_x, starting_board_y)
     starting_squares = empty_squares.shuffle
 
-    if kinds.length > empty_squares.length
+    if kinds.length == 0
+      raise EmptyKindsError
+    elsif kinds.length > empty_squares.length
       raise NotEnoughEmptySquaresError
     end
 

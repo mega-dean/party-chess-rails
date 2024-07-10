@@ -76,6 +76,16 @@ RSpec.describe Player do
       }.to raise_error(Piece::InvalidKind)
     end
 
+    it "raises an error when no kinds are passed in" do
+      expect {
+        @player.create_starting_pieces!(
+          kinds: [],
+          starting_board_x: 0,
+          starting_board_y: 0,
+        )
+      }.to raise_error(Player::EmptyKindsError)
+    end
+
     it "doesn't create any pieces when there is any error" do
       ally_player = @game.players.create!(is_black: @player.is_black)
       (0..60).to_a.each do |square|
