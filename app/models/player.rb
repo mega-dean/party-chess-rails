@@ -7,6 +7,10 @@ class Player < ApplicationRecord
   class TooManyStartingPointsError < StandardError; end
   class NotEnoughEmptySquaresError < StandardError; end
 
+  STATUSES = [CHOOSING_PARTY, JOINING, PLAYING, DEAD]
+
+  validates :status, inclusion: { in: STATUSES }
+
   def create_starting_pieces!(kinds:, starting_board_x:, starting_board_y:)
     points = kinds.map { |kind| Piece.cost(kind) }.sum
 
