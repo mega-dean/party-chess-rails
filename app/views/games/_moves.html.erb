@@ -1,17 +1,18 @@
 <% step_time = 300 %>
 
 <div id="game-moves">
-  <% data&.each do |(board_x, board_y), steps| %>
-    <% steps.each.with_index do |step, idx| %>
-      <div data-controller="move"
-           data-move-wait-time-value="<%= idx * step_time %>"
-           data-move-step-value="<%= step.to_json %>"
-      >
-      </div>
-    <% end %>
-  <% end %>
-
   <% if data %>
+    <% data.each do |(board_x, board_y), steps| %>
+      <% steps.each.with_index do |step, idx| %>
+        <div data-controller="move"
+             data-move-wait-time-value="<%= idx * step_time %>"
+             data-move-step-value="<%= step.to_json %>"
+             data-move-moves-from-hidden-boards-value="<%= moves_from_hidden_boards&.to_json || '[]' %>"
+        >
+        </div>
+      <% end %>
+    <% end %>
+
     <div id="refresh-grid"
          data-controller="refresh"
          data-refresh-wait-time-value="<%= step_time * Move::INTERMEDIATE_SQUARES_PER_TURN %>"

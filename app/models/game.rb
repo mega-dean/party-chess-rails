@@ -334,7 +334,7 @@ class Game < ApplicationRecord
     cache = self.build_cache
     steps = self.get_move_steps(cache)
     self.apply_move_steps(steps, cache)
-    self.broadcast_move_steps(steps)
+    self.broadcast_move_steps(steps, cache)
   ensure
     self.update!(processing_moves: false)
   end
@@ -398,12 +398,27 @@ class Game < ApplicationRecord
 
   private
 
-  def broadcast_move_steps(steps_by_board)
+  def get_moves_from_hidden_boards(cache)
+    cache.map do |piece_id, cached|
+      if cached[:move]
+        {
+          id: piece_id,
+          kind: cached[:piece].kind,
+          direction: cached[:move].direction,
+        }
+      end
+    end.compact
+  end
+
+  def broadcast_move_steps(steps_by_board, cache)
+    moves_from_hidden_boards = get_moves_from_hidden_boards(cache)
+
     self.players.each do |player|
       data = get_boards_to_broadcast(player, steps_by_board)
 
       broadcast_replace_to "player_#{player.id}_moves", target: 'game-moves', partial: "games/moves", locals: {
         data: data,
+        moves_from_hidden_boards: moves_from_hidden_boards,
         player: player,
       }
     end
