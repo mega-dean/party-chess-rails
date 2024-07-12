@@ -28,7 +28,9 @@ pending_moves = player.pending_moves_by_board
             <% 8.times do |x| %>
               <% span_class = "#{y%2 == x%2 ? 'light' : 'dark'}-#{has_piece_on_board ? 'revealed' : 'obscured'}" %>
               <span class="square <%= span_class %>">
-                <%= player.game.location_to_square({board_x: board_x, board_y: board_y, x: x, y: y}) %>
+                <% if Rails.env.development? %>
+                  <%= player.game.location_to_square({board_x: board_x, board_y: board_y, x: x, y: y}) %>
+                <% end %>
               </span>
             <% end %>
           <% end %>

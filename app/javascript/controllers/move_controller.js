@@ -4,6 +4,8 @@ import { utils } from "./utils"
 export default class extends Controller {
   static values = {
     step: Object,
+    color: String,
+    enemyColor: String,
     movesFromHiddenBoards: Array,
     waitTime: Number,
   }
@@ -16,7 +18,7 @@ export default class extends Controller {
         }
 
         if (moves.spawned) {
-          this.spawnPieceAt(targetSquare, moves.spawned);
+          this.spawnPieceAt(targetSquare, moves.spawned, this.colorValue);
         }
 
         let movedPieces = (moves.moving || []).concat(moves.bumped || []);
@@ -30,13 +32,13 @@ export default class extends Controller {
     utils.grid().removeAttribute('data-moves-allowed-now');
   }
 
-  spawnPieceAt(targetSquare, kind) {
+  spawnPieceAt(targetSquare, kind, color) {
     // CLEANUP duplicated in choose_party_controller
     const img = document.createElement("img");
 
     const findSrc = (kind) => {
-      const img = [...document.getElementsByTagName("img")].find((img) => {
-        return img.dataset.kind === kind;
+      const img = [...document.$("#piece-images").$$(".piece-image")].find((img) => {
+        return img.dataset.kind === kind && img.dataset.color === color;
       });
 
       return img?.src;
@@ -57,7 +59,7 @@ export default class extends Controller {
     return container;
   }
 
-  movePieceTo(id, dest) {
+  movePieceTo(id, targetSquare) {
     const piece = document.$(`#piece-${id}`);
 
     // This check is needed now because the backend isn't broadcasting boards with move_steps.
@@ -67,20 +69,17 @@ export default class extends Controller {
         y: parseInt(piece.dataset.pieceBoardYValue),
       };
 
-      const destBoard = this.getDestBoard(dest);
-      const translate = this.getTranslate(dest, srcBoard, destBoard);
+      const destBoard = this.getDestBoard(targetSquare);
+      const translate = this.getTranslate(targetSquare, srcBoard, destBoard);
       piece.style.transform = translate;
     } else {
-      // CLEANUP rename
-      const targetSquare = dest;
-
       const movedPiece = this.movesFromHiddenBoardsValue.find((move) => {
         return move.id === id;
       });
 
       const destBoard = this.getDestBoard(targetSquare);
 
-      const container = this.spawnPieceAt(targetSquare, movedPiece.kind);
+      const container = this.spawnPieceAt(targetSquare, movedPiece.kind, this.enemyColorValue);
       container.id = `piece-${movedPiece.id}`;
 
       // CLEANUP probably better to set .dataset on the element instead

@@ -1,10 +1,12 @@
 <% step_time = 300 %>
 
 <div id="game-moves">
-  <% if data %>
-    <% data.each do |(board_x, board_y), steps| %>
+  <% if move_steps %>
+    <% move_steps.each do |(board_x, board_y), steps| %>
       <% steps.each.with_index do |step, idx| %>
         <div data-controller="move"
+             data-move-color-value="<%= player.color %>"
+             data-move-enemy-color-value="<%= if player.color == WHITE then BLACK else WHITE end %>"
              data-move-wait-time-value="<%= idx * step_time %>"
              data-move-step-value="<%= step.to_json %>"
              data-move-moves-from-hidden-boards-value="<%= moves_from_hidden_boards&.to_json || '[]' %>"

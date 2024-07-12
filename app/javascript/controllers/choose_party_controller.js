@@ -37,7 +37,7 @@ export default class extends Controller {
       const img = document.createElement("img");
 
       const findSrc = (kind) => {
-        const img = [...document.getElementsByTagName("img")].find((img) => {
+        const img = [...document.$$(".piece-button")].find((img) => {
           return img.dataset.kind === kind;
         });
 

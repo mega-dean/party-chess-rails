@@ -414,10 +414,10 @@ class Game < ApplicationRecord
     moves_from_hidden_boards = get_moves_from_hidden_boards(cache)
 
     self.players.each do |player|
-      data = get_boards_to_broadcast(player, steps_by_board)
+      move_steps = get_boards_to_broadcast(player, steps_by_board)
 
       broadcast_replace_to "player_#{player.id}_moves", target: 'game-moves', partial: "games/moves", locals: {
-        data: data,
+        move_steps: move_steps,
         moves_from_hidden_boards: moves_from_hidden_boards,
         player: player,
       }

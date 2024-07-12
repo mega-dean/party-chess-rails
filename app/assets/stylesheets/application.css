@@ -27,6 +27,10 @@ html {
     flex-wrap: nowrap;
 }
 
+#piece-images {
+    display: none;
+}
+
 .board {
     /* Using this instead of grid gap. */
     padding: 0.6rem;
