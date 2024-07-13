@@ -49,9 +49,11 @@ export default class extends Controller {
 
     const container = document.createElement("div");
     container.classList.add('piece-container');
+    const destBoard = this.getDestBoard(targetSquare);
+    container.dataset.pieceBoardXValue = destBoard.x;
+    container.dataset.pieceBoardYValue = destBoard.y;
     container.appendChild(img);
 
-    const destBoard = this.getDestBoard(targetSquare);
     const translate = this.getTranslate(targetSquare, destBoard, destBoard);
     container.style.transform = translate;
 
