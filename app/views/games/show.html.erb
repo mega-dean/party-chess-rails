@@ -14,19 +14,7 @@
     </div>
   <% end %>
 
-  <div id="piece-images">
-    <% [WHITE, BLACK].each do |color| %>
-      <% Piece::KINDS.each do |kind| %>
-        <%= image_tag("#{color}-#{kind}",
-                      class: 'piece-image',
-                      data: {
-                        color: color,
-                        kind: kind,
-        })
-        %>
-      <% end %>
-    <% end %>
-  </div>
+  <%= render partial: "pieces/images" %>
 
   <%= turbo_stream_from("player_#{@player.id}_moves") %>
   <%= render partial: "games/moves", locals: { move_steps: nil, moves_from_hidden_boards: nil, player: @player } %>

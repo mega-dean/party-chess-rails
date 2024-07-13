@@ -7,10 +7,13 @@
   <% end %>
 </div>
 
+<%= render partial: "pieces/images" %>
+
 <% points = @player.get_points[:bank] %>
 <div id="choose-party"
      data-controller="choose-party"
      data-choose-party-bank-value=<%= points %>
+     data-choose-party-color-value=<%= @player.color %>
 >
   <div>
     Choose your party!

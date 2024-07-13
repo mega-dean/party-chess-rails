@@ -491,17 +491,17 @@ RSpec.describe Game do
     it "adds spawned pieces to the first move_step" do
       original_rook_square = 36
       rook = @player.pieces.create!(kind: ROOK, square: original_rook_square)
-      rook.try_move(target_square: 39, direction: :right, spawn_kind: BISHOP)
+      spawned_kind = BISHOP
+      rook.try_move(target_square: 39, direction: :right, spawn_kind: spawned_kind)
 
       cache = @game.build_cache
       steps = @game.get_move_steps(cache)
 
       @game.apply_move_steps(steps, cache)
-      spawned_piece = Piece.last
 
       expect_moves(
         [
-          { 37 => { moving: [rook.id] }, 36 => { spawned: spawned_piece.kind }},
+          { 37 => { moving: [rook.id] }, 36 => { spawnedKind: spawned_kind }},
           { 38 => { moving: [rook.id] } },
           { 39 => { moving: [rook.id] } },
           { 39 => { moved: rook.id } },

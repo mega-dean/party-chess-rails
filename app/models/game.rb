@@ -378,7 +378,7 @@ class Game < ApplicationRecord
 
           if move.pending_spawn_kind
             spawned = piece.player.spawn_piece(square: piece.square, kind: move.pending_spawn_kind)
-            steps.first[piece.square] = { spawned: spawned.kind }
+            steps.first[piece.square] = { spawnedKind: spawned.kind }
           end
           piece.update!(square: target_square)
         end
@@ -402,7 +402,7 @@ class Game < ApplicationRecord
     cache.map do |piece_id, cached|
       if cached[:move]
         {
-          id: piece_id,
+          pieceId: piece_id,
           kind: cached[:piece].kind,
           direction: cached[:move].direction,
         }

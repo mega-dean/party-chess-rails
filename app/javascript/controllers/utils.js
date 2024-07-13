@@ -9,6 +9,8 @@ export const utils = {
   grid: () => getGrid(),
   boardsWide: () => parseInt(getGrid()?.dataset.boardsWide),
   boardsTall: () => parseInt(getGrid()?.dataset.boardsTall),
+  squareRem: () => 4,
+  paddingRem: () => 0.6,
   postJson: (url, body) => {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -20,5 +22,24 @@ export const utils = {
       },
       body: JSON.stringify(body),
     });
-  }
+  },
+  createImg: (color, kind, containerClass) => {
+    const img = document.createElement("img");
+
+    const findSrc = (kind) => {
+      const img = [...document.$("#piece-images").$$(".piece-image")].find((img) => {
+        return img.dataset.kind === kind && img.dataset.color === color;
+      });
+
+      return img?.src;
+    };
+
+    img.src = findSrc(kind);
+
+    const container = document.createElement("div");
+    container.classList.add(containerClass);
+    container.appendChild(img);
+
+    return { container, img };
+  },
 };

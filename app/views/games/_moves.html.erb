@@ -5,7 +5,7 @@
     <% move_steps.each do |(board_x, board_y), steps| %>
       <% steps.each.with_index do |step, idx| %>
         <div data-controller="move"
-             data-move-color-value="<%= player.color %>"
+             data-move-current-color-value="<%= player.game.current_color %>"
              data-move-enemy-color-value="<%= if player.color == WHITE then BLACK else WHITE end %>"
              data-move-wait-time-value="<%= idx * step_time %>"
              data-move-step-value="<%= step.to_json %>"

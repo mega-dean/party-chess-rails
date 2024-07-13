@@ -36,23 +36,22 @@ export default class extends Controller {
         this.isSelectedValue = true;
         this.dispatch('deselect-other-pieces', { detail: { id: this.idValue }});
 
-        // CLEANUP maybe don't use the term `location` since that is a browser built-in (ie a url)
         // This function expects locations that use -1 and 8 for x/y values for moves to adjacent boards.
-        const makeTranslate = (location) => {
-          const squareRem = 4;
-          const paddingRem = 0.6;
+        const makeTranslate = (pieceLocation) => {
+          const squareRem = utils.squareRem();
+          const paddingRem = utils.paddingRem();
           const boardGapSize = (2 * paddingRem);
 
-          const boardXOffset = (location.boardX - this.boardXValue) * boardGapSize;
-          const boardYOffset = (location.boardY - this.boardYValue) * boardGapSize;
+          const boardXOffset = (pieceLocation.boardX - this.boardXValue) * boardGapSize;
+          const boardYOffset = (pieceLocation.boardY - this.boardYValue) * boardGapSize;
 
-          const x = boardXOffset + (squareRem * location.x) + paddingRem;
-          const y = boardYOffset + (squareRem * location.y) + paddingRem;
+          const x = boardXOffset + (squareRem * pieceLocation.x) + paddingRem;
+          const y = boardYOffset + (squareRem * pieceLocation.y) + paddingRem;
 
           return `transform: translate(${x}rem, ${y}rem)`;
         };
 
-        const makeMoveTarget = (direction, location) => {
+        const makeMoveTarget = (direction, pieceLocation) => {
           const child = document.createElement("div");
           child.classList.add("move-target");
 
@@ -64,10 +63,10 @@ export default class extends Controller {
 
           setControllerValue('PieceId', this.idValue);
           setControllerValue('Direction', direction);
-          setControllerValue('BoardX', location.boardX);
-          setControllerValue('BoardY', location.boardY);
-          setControllerValue('X', location.x);
-          setControllerValue('Y', location.y);
+          setControllerValue('BoardX', pieceLocation.boardX);
+          setControllerValue('BoardY', pieceLocation.boardY);
+          setControllerValue('X', pieceLocation.x);
+          setControllerValue('Y', pieceLocation.y);
 
           child.dataset.action = "click->move-target#selectTarget";
           child.style = makeTranslate(location);
@@ -76,16 +75,13 @@ export default class extends Controller {
         };
 
         const board = document.$(`#board-${this.boardXValue}-${this.boardYValue}`);
-        const appendTargetLocations = (direction, locations) => {
-          locations.forEach((location) => {
-            const moveTarget = makeMoveTarget(direction, location);
+        const allTargetLocations = this.getTargetLocations();
+
+        for (const [direction, targetLocations] of Object.entries(allTargetLocations)) {
+          targetLocations.forEach((targetLocation) => {
+            const moveTarget = makeMoveTarget(direction, targetLocation);
             board.appendChild(moveTarget);
           });
-        };
-
-        const allTargetLocations = this.getTargetLocations();
-        for (const [direction, targetLocations] of Object.entries(allTargetLocations)) {
-          appendTargetLocations(direction, targetLocations);
         }
       }
     }

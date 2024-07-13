@@ -4,7 +4,7 @@ import { utils } from "./utils"
 export default class extends Controller {
   static values = {
     step: Object,
-    color: String,
+    currentColor: String,
     enemyColor: String,
     movesFromHiddenBoards: Array,
     waitTime: Number,
@@ -17,8 +17,8 @@ export default class extends Controller {
           document.$(`#piece-${moves.captured}`)?.remove();
         }
 
-        if (moves.spawned) {
-          this.spawnPieceAt(targetSquare, moves.spawned, this.colorValue);
+        if (moves.spawnedKind) {
+          this.spawnPieceAt(targetSquare, moves.spawnedKind, this.currentColorValue);
         }
 
         let movedPieces = (moves.moving || []).concat(moves.bumped || []);
@@ -32,30 +32,22 @@ export default class extends Controller {
     utils.grid().removeAttribute('data-moves-allowed-now');
   }
 
-  spawnPieceAt(targetSquare, kind, color) {
-    // CLEANUP duplicated in choose_party_controller
-    const img = document.createElement("img");
+  spawnPieceAt(targetSquare, kind, color, translateOffset = { x: 0, y: 0 }) {
+    const { container, img } = utils.createImg(color, kind, "piece-container");
 
-    const findSrc = (kind) => {
-      const img = [...document.$("#piece-images").$$(".piece-image")].find((img) => {
-        return img.dataset.kind === kind && img.dataset.color === color;
-      });
-
-      return img?.src;
-    };
-
-    img.src = findSrc(kind);
     img.classList.add("piece");
 
-    const container = document.createElement("div");
-    container.classList.add('piece-container');
     const destBoard = this.getDestBoard(targetSquare);
     container.dataset.pieceBoardXValue = destBoard.x;
     container.dataset.pieceBoardYValue = destBoard.y;
-    container.appendChild(img);
 
-    const translate = this.getTranslate(targetSquare, destBoard, destBoard);
-    container.style.transform = translate;
+    // Use destBoard for both args because a newly-spawned piece (or a piece moving from hidden board) will always
+    // be on the targetSquare board.
+    const translateCoords = this.getTranslateCoords(targetSquare, destBoard, destBoard);
+    container.style.transform = this.getTranslateStyle({
+      x: translateCoords.x + translateOffset.x,
+      y: translateCoords.y + translateOffset.y,
+    });
 
     document.$(`#board-${destBoard.x}-${destBoard.y}`).appendChild(container);
     return container;
@@ -76,60 +68,52 @@ export default class extends Controller {
       piece.style.transform = translate;
     } else {
       const movedPiece = this.movesFromHiddenBoardsValue.find((move) => {
-        return move.id === id;
+        return move.pieceId === id;
       });
 
-      const destBoard = this.getDestBoard(targetSquare);
+      const squareRem = utils.squareRem();
 
-      const container = this.spawnPieceAt(targetSquare, movedPiece.kind, this.enemyColorValue);
-      container.id = `piece-${movedPiece.id}`;
-
-      // CLEANUP probably better to set .dataset on the element instead
-      const regex = /(-?\d*\.?\d+)/g;
-      const matches = container.style.transform.match(regex);
-      const squareRem = 4;
-
-      if (matches) {
-        let x = parseFloat(matches[0]);
-        let y = parseFloat(matches[1]);
-
-        switch (movedPiece.direction) {
-          case 'up':
-            y += squareRem;
-            break;
-          case 'down':
-            y -= squareRem;
-            break;
-          case 'left':
-            x += squareRem;
-            break;
-          case 'right':
-            x -= squareRem;
-            break;
-          case 'up_left':
-            x += squareRem;
-            y += squareRem;
-            break;
-          case 'up_right':
-            x -= squareRem;
-            y += squareRem;
-            break;
-          case 'down_left':
-            x += squareRem;
-            y -= squareRem;
-            break;
-          case 'down_right':
-            x -= squareRem;
-            y -= squareRem;
-            break;
-        }
-
-        container.style.transform = `translate(${x}rem, ${y}rem)`;
+      let translateOffset = { x: 0, y: 0 };
+      switch (movedPiece.direction) {
+        case 'up':
+          translateOffset.y += squareRem;
+          break;
+        case 'down':
+          translateOffset.y -= squareRem;
+          break;
+        case 'left':
+          translateOffset.x += squareRem;
+          break;
+        case 'right':
+          translateOffset.x -= squareRem;
+          break;
+        case 'up_left':
+          translateOffset.x += squareRem;
+          translateOffset.y += squareRem;
+          break;
+        case 'up_right':
+          translateOffset.x -= squareRem;
+          translateOffset.y += squareRem;
+          break;
+        case 'down_left':
+          translateOffset.x += squareRem;
+          translateOffset.y -= squareRem;
+          break;
+        case 'down_right':
+          translateOffset.x -= squareRem;
+          translateOffset.y -= squareRem;
+          break;
       }
 
-      // CLEANUP comment explaining this
+      const container = this.spawnPieceAt(targetSquare, movedPiece.kind, this.enemyColorValue, translateOffset);
+      container.id = `piece-${movedPiece.pieceId}`;
+
+      // When appending the container element with the original style.transform, and then immediately updating
+      // style.transform, the piece was just being rendered at the final location because the browser wasn't
+      // painting the DOM with the initial location. So these `requestAnimationFrame`s force the browser to repaint.
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
+          const destBoard = this.getDestBoard(targetSquare);
           container.style.transform = this.getTranslate(targetSquare, destBoard, destBoard);
         });
       });
@@ -138,17 +122,27 @@ export default class extends Controller {
 
   getDestBoard(destSquare) {
     const destBoardIdx = Math.floor(destSquare / 64);
-    const destBoardX = destBoardIdx % utils.boardsWide();
-    const destBoardY = Math.floor(destBoardIdx / utils.boardsWide());
 
-    return { x: destBoardX, y: destBoardY };
+    return {
+      x: destBoardIdx % utils.boardsWide(),
+      y: Math.floor(destBoardIdx / utils.boardsWide()),
+    };
   }
 
   getTranslate(destSquare, srcBoard, destBoard) {
+    const coords = this.getTranslateCoords(destSquare, srcBoard, destBoard);
+    return this.getTranslateStyle(coords);
+  }
+
+  getTranslateStyle(coords) {
+    return `translate(${coords.x}rem, ${coords.y}rem)`;
+  }
+
+  getTranslateCoords(destSquare, srcBoard, destBoard) {
     const relativeDestX = destSquare % 8;
     const relativeDestY = Math.floor((destSquare % 64) / 8);
-    const squareRem = 4;
-    const paddingRem = 0.6;
+    const squareRem = utils.squareRem();
+    const paddingRem = utils.paddingRem()
 
     const boardSize = (8 * squareRem) + (2 * paddingRem);
     const boardXOffset = (destBoard.x - srcBoard.x) * boardSize;
@@ -158,11 +152,11 @@ export default class extends Controller {
     const y = boardYOffset + (squareRem * relativeDestY) + paddingRem;
 
     if (isNaN(x) || isNaN(y)) {
-      console.error(`NaN in getTranslate`);
+      console.error(`NaN in getTranslateCoords`);
       console.log(srcBoard);
       console.log(destBoard);
     }
 
-    return `translate(${x}rem, ${y}rem)`;
+    return { x, y };
   }
 };

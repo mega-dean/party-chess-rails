@@ -1,10 +1,12 @@
 import { Controller } from "@hotwired/stimulus"
+import { utils } from "./utils"
 
 export default class extends Controller {
   static targets = ["bank", "button", "chosen"]
 
   static values = {
     bank: Number,
+    color: String,
     party: Array,
     url: String,
   }
@@ -34,24 +36,10 @@ export default class extends Controller {
 
   choosePiece(event) {
     if (event.target.dataset.affordable) {
-      const img = document.createElement("img");
-
-      const findSrc = (kind) => {
-        const img = [...document.$$(".piece-button")].find((img) => {
-          return img.dataset.kind === kind;
-        });
-
-        return img?.src;
-      };
-
-      img.src = findSrc(event.target.dataset.kind);
+      const { container, img } = utils.createImg(this.colorValue, event.target.dataset.kind, "chosen-piece-container");
 
       img.dataset.kind = event.target.dataset.kind;
       img.dataset.choosePartyTarget = "chosen";
-
-      const container = document.createElement("div");
-      container.classList.add('chosen-piece-container');
-      container.appendChild(img);
 
       const removeButton = document.createElement("button");
       removeButton.classList.add("remove-button");

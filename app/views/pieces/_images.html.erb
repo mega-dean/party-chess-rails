@@ -1,0 +1,13 @@
+<div id="piece-images">
+  <% [WHITE, BLACK].each do |color| %>
+    <% Piece::KINDS.each do |kind| %>
+      <%= image_tag("#{color}-#{kind}",
+                    class: 'piece-image',
+                    data: {
+                      color: color,
+                      kind: kind,
+      })
+      %>
+    <% end %>
+  <% end %>
+</div>
